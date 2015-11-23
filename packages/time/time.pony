@@ -15,7 +15,7 @@ primitive Time
       (ts._1, ts._2 * 1000)
     elseif Platform.linux() or Platform.freebsd() then
       var ts: (I64, I64) = (0, 0)
-      @clock_gettime[I32](U64(0), addressof ts)
+      @clock_gettime[I32](U32(0), addressof ts)
       ts
     elseif Platform.windows() then
       var ft: (U32, U32) = (0, 0)
@@ -43,7 +43,7 @@ primitive Time
       @mach_absolute_time[U64]() / 1000000
     elseif Platform.linux() or Platform.freebsd() then
       var ts: (U64, U64) = (0, 0)
-      @clock_gettime[I32](U64(1), addressof ts)
+      @clock_gettime[I32](U32(1), addressof ts)
       (ts._1 * 1000) + (ts._2 / 1000000)
     elseif Platform.windows() then
       var pf: (U32, U32) = (0, 0)
@@ -65,7 +65,7 @@ primitive Time
       @mach_absolute_time[U64]() / 1000
     elseif Platform.linux() or Platform.freebsd() then
       var ts: (U64, U64) = (0, 0)
-      @clock_gettime[I32](U64(1), addressof ts)
+      @clock_gettime[I32](U32(1), addressof ts)
       (ts._1 * 1000000) + (ts._2 / 1000)
     elseif Platform.windows() then
       var pf: (U32, U32) = (0, 0)
@@ -87,7 +87,7 @@ primitive Time
       @mach_absolute_time[U64]()
     elseif Platform.linux() or Platform.freebsd() then
       var ts: (U64, U64) = (0, 0)
-      @clock_gettime[I32](U64(1), addressof ts)
+      @clock_gettime[I32](U32(1), addressof ts)
       (ts._1 * 1000000000) + ts._2
     elseif Platform.windows() then
       var pf: (U32, U32) = (0, 0)
