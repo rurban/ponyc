@@ -21,7 +21,7 @@ typedef struct stringtab_entry_t
   size_t buf_size;
 } stringtab_entry_t;
 
-static uint64_t stringtab_hash(stringtab_entry_t* a)
+static size_t stringtab_hash(stringtab_entry_t* a)
 {
   return hash_block(a->str, a->len);
 }

@@ -21,7 +21,7 @@ static void reachable_method(reachable_method_stack_t** s,
 static void reachable_expr(reachable_method_stack_t** s,
   reachable_types_t* r, ast_t* ast);
 
-static uint64_t reachable_method_hash(reachable_method_t* m)
+static size_t reachable_method_hash(reachable_method_t* m)
 {
   return hash_ptr(m->name);
 }
@@ -42,7 +42,7 @@ DEFINE_HASHMAP(reachable_methods, reachable_method_t, reachable_method_hash,
   reachable_method_cmp, pool_alloc_size, pool_free_size, reachable_method_free
   );
 
-static uint64_t reachable_method_name_hash(reachable_method_name_t* m)
+static size_t reachable_method_name_hash(reachable_method_name_t* m)
 {
   return hash_ptr(m->name);
 }
@@ -63,7 +63,7 @@ DEFINE_HASHMAP(reachable_method_names, reachable_method_name_t,
   reachable_method_name_hash, reachable_method_name_cmp, pool_alloc_size,
   pool_free_size, reachable_method_name_free);
 
-static uint64_t reachable_type_hash(reachable_type_t* t)
+static size_t reachable_type_hash(reachable_type_t* t)
 {
   return hash_ptr(t->name);
 }

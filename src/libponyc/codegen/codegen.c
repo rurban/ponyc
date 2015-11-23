@@ -19,7 +19,7 @@ struct compile_local_t
   LLVMValueRef alloca;
 };
 
-static uint64_t compile_local_hash(compile_local_t* p)
+static size_t compile_local_hash(compile_local_t* p)
 {
   return hash_ptr(p->name);
 }

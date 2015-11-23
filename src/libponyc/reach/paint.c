@@ -84,7 +84,7 @@ typedef struct name_record_t
 
 
 // We keep our name records in a hash map
-static uint64_t name_record_hash(name_record_t* p)
+static size_t name_record_hash(name_record_t* p)
 {
   return hash_ptr(p->name);
 }

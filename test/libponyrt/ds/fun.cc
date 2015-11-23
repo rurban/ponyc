@@ -10,8 +10,8 @@ TEST(DsFunTest, HashSameIntGivesSameKey)
 {
   uint64_t i = 2701197231051989;
 
-  uint64_t key1 = hash_int(i);
-  uint64_t key2 = hash_int(i);
+  uint64_t key1 = hash_int64(i);
+  uint64_t key2 = hash_int64(i);
 
   ASSERT_EQ(key1, key2);
 }
