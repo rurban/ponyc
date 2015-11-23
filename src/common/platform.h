@@ -221,6 +221,12 @@ static __declspec(thread) DWORD lsb;
             __builtin_choose_expr(COND, THEN, ELSE)
 #endif
 
+#ifdef PLATFORM_IS_ILP32
+#  define dw_t int64_t
+#else
+#  define dw_t __int128_t
+#endif
+
 #include "atomics.h"
 #include "threads.h"
 #include "paths.h"
