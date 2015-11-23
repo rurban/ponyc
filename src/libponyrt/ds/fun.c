@@ -77,7 +77,7 @@ uint64_t hash_str(const char* str)
 
 uint64_t hash_ptr(const void* p)
 {
-  return hash_int((uint64_t)p);
+  return hash_int((uintptr_t)p);
 }
 
 uint64_t hash_int(uint64_t key)
@@ -102,7 +102,10 @@ size_t next_pow2(size_t i)
   i |= i >> 4;
   i |= i >> 8;
   i |= i >> 16;
+
+#ifndef PLATFORM_IS_ILP32
   i |= i >> 32;
+#endif
 
   return i + 1;
 }
