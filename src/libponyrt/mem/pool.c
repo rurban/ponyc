@@ -268,7 +268,7 @@ static void track_alloc(void* p, size_t size)
   track.stack = pool_track_push(track.stack, POOL_TRACK_ALLOC);
   track.stack = pool_track_push(track.stack, p);
   track.stack = pool_track_push(track.stack, (void*)size);
-  track.stack = pool_track_push(track.stack, (void*)__pony_rdtsc());
+  track.stack = pool_track_push(track.stack, (void*)cpu_tick());
 
   track.internal = false;
 }
@@ -283,7 +283,7 @@ static void track_free(void* p, size_t size)
   track.stack = pool_track_push(track.stack, POOL_TRACK_FREE);
   track.stack = pool_track_push(track.stack, p);
   track.stack = pool_track_push(track.stack, (void*)size);
-  track.stack = pool_track_push(track.stack, (void*)__pony_rdtsc());
+  track.stack = pool_track_push(track.stack, (void*)cpu_tick());
 
   track.internal = false;
 }
@@ -294,7 +294,7 @@ static void track_push(pool_item_t* p, size_t length, size_t size)
   assert(!track.internal);
 
   track.internal = true;
-  size_t tsc = __pony_rdtsc();
+  uint64_t tsc = cpu_tick();
 
   track.stack = pool_track_push(track.stack, POOL_TRACK_PUSH_LIST);
   track.stack = pool_track_push(track.stack, (void*)length);
@@ -319,7 +319,7 @@ static void track_pull(pool_item_t* p, size_t length, size_t size)
   assert(!track.internal);
 
   track.internal = true;
-  size_t tsc = __pony_rdtsc();
+  uint64_t tsc = cpu_tick();
 
   track.stack = pool_track_push(track.stack, POOL_TRACK_PULL_LIST);
   track.stack = pool_track_push(track.stack, (void*)length);

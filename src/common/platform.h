@@ -105,6 +105,50 @@
 #  define PLATFORM_IS_ILP32
 #endif
 
+/** ARM architecture flags.
+ *
+ */
+#if defined(__ARM_ARCH_7__) || \
+    defined(__ARM_ARCH_7R__) || \
+    defined(__ARM_ARCH_7A__)
+# define ARMV7 1
+#endif
+
+#if defined(ARMV7) || \
+    defined(__ARM_ARCH_6__) || \
+    defined(__ARM_ARCH_6J__) || \
+    defined(__ARM_ARCH_6K__) || \
+    defined(__ARM_ARCH_6Z__) || \
+    defined(__ARM_ARCH_6T2__) || \
+    defined(__ARM_ARCH_6ZK__)
+# define ARMV6 1
+#endif
+
+#if defined(ARMV6) || \
+    defined(__ARM_ARCH_5T__) || \
+    defined(__ARM_ARCH_5E__) || \
+    defined(__ARM_ARCH_5TE__) || \
+    defined(__ARM_ARCH_5TEJ__)
+# define ARMV5 1
+#endif
+
+#if defined(ARMV5) || \
+    defined(__ARM_ARCH_4__) || \
+    defined(__ARM_ARCH_4T__)
+# define ARMV4 1
+#endif
+
+#if defined(ARMV4) || \
+    defined(__ARM_ARCH_3__) || \
+    defined(__ARM_ARCH_3M__)
+# define ARMV3 1
+#endif
+
+#if defined(ARMV3) || \
+    defined(__ARM_ARCH_2__)
+# define ARMV2 1
+#endif
+
 /** Data types.
  *
  */
@@ -159,11 +203,6 @@ inline int snprintf(char* str, size_t size, const char* format, ...)
 #  define __pony_ffsl(X) __builtin_ffsl((X))
 #  define __pony_clz(X) __builtin_clz((X))
 #  define __pony_clzl(X) __builtin_clzl((X))
-#  ifdef __clang__
-#    define __pony_rdtsc() __builtin_readcyclecounter()
-#  else
-#    define __pony_rdtsc() __builtin_ia32_rdtsc()
-#  endif
 #else
 #  include <intrin.h>
 #  define __pony_popcount(X) __popcnt((X))
@@ -175,7 +214,6 @@ static __declspec(thread) DWORD lsb;
 #  define __pony_ffsl(X) (lsb = 0, _BitScanForward64(&lsb, (X)), lsb+1)
 #  define __pony_clz(X) (lsb = 0,_BitScanReverse(&lsb, (X)), lsb)
 #  define __pony_clzl(X) (lsb = 0, _BitScanReverse64(&lsb, (X)), lsb)
-#  define __pony_rdtsc() __rdtsc()
 #endif
 
 #ifdef PLATFORM_IS_VISUAL_STUDIO
@@ -221,6 +259,15 @@ static __declspec(thread) DWORD lsb;
             __builtin_choose_expr(COND, THEN, ELSE)
 #endif
 
+#if defined(PLATFORM_IS_VISUAL_STUDIO)
+#  if defined(PONY_USE_BIGINT)
+#    include "int128.h"
+#  else
+     typedef struct __int128_t { uint64_t low; int64_t high; } __int128_t;
+     typedef struct __uint128_t { uint64_t low; uint64_t high; } __uint128_t;
+#  endif
+#endif
+
 #ifdef PLATFORM_IS_ILP32
 #  define dw_t int64_t
 #else
@@ -233,15 +280,6 @@ static __declspec(thread) DWORD lsb;
 
 #if defined(PLATFORM_IS_WINDOWS)
 #  include "vcvars.h"
-#endif
-
-#if defined(PLATFORM_IS_VISUAL_STUDIO)
-#  if defined(PONY_USE_BIGINT)
-#    include "int128.h"
-#  else
-     typedef struct __int128_t { uint64_t low; int64_t high; } __int128_t;
-     typedef struct __uint128_t { uint64_t low; uint64_t high; } __uint128_t;
-#  endif
 #endif
 
 #endif
