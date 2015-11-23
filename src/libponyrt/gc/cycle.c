@@ -35,7 +35,7 @@ typedef struct viewref_t
   size_t rc;
 } viewref_t;
 
-static uint64_t viewref_hash(viewref_t* vref)
+static size_t viewref_hash(viewref_t* vref)
 {
   return hash_ptr(vref->view);
 }
@@ -77,7 +77,7 @@ struct view_t
   perceived_t* perceived;
 };
 
-static uint64_t view_hash(view_t* view)
+static size_t view_hash(view_t* view)
 {
   return hash_ptr(view->actor);
 }
@@ -111,9 +111,9 @@ struct perceived_t
   viewmap_t map;
 };
 
-static uint64_t perceived_hash(perceived_t* per)
+static size_t perceived_hash(perceived_t* per)
 {
-  return hash_int(per->token);
+  return hash_size(per->token);
 }
 
 static bool perceived_cmp(perceived_t* a, perceived_t* b)

@@ -58,7 +58,7 @@ typedef struct flag_t
 
 
 // Functions required for our hash table type.
-static uint64_t flag_hash(flag_t* flag)
+static size_t flag_hash(flag_t* flag)
 {
   assert(flag != NULL);
   return hash_ptr(flag->name);
@@ -446,7 +446,7 @@ bool define_build_flag(const char* name)
     _user_flags = POOL_ALLOC(flagtab_t);
     flagtab_init(_user_flags, 8);
   }
-  
+
   flag_t f1 = {stringtab(name), false};
   flag_t* f2 = flagtab_get(_user_flags, &f1);
 
@@ -466,7 +466,7 @@ bool is_build_flag_defined(const char* name)
   if(_user_flags == NULL)
     // Table is not initialised, so no flags are defined.
     return false;
-  
+
   flag_t f1 = { stringtab(name), false };
   flag_t* f2 = flagtab_get(_user_flags, &f1);
 
