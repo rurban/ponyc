@@ -233,9 +233,9 @@ uint64_t cpu_tick()
   return mach_absolute_time();
 # else
   // V6 is the earliest arch that has a standard cyclecount
-  uint32 pmccntr;
-  uint32 pmuseren;
-  uint32 pmcntenset;
+  uint32_t pmccntr;
+  uint32_t pmuseren;
+  uint32_t pmcntenset;
 
   // Read the user mode perf monitor counter access permissions.
   asm volatile ("mrc p15, 0, %0, c9, c14, 0" : "=r" (pmuseren));
