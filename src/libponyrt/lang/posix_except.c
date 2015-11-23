@@ -8,6 +8,7 @@
 PONY_EXTERN_C_BEGIN
 
 #if defined(__arm__)
+#include <string.h>
 #define _URC_FATAL_PHASE1_ERROR _URC_FAILURE
 #endif
 
@@ -25,7 +26,7 @@ static void exception_cleanup(_Unwind_Reason_Code reason,
 void pony_throw()
 {
 #if defined(__arm__)
-  memcpy(exception.exception_class, exception_class, 8);
+  memcpy(exception.exception_class, &exception_class, 8);
 #else
   exception.exception_class = exception_class;
 #endif
