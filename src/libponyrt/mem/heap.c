@@ -176,7 +176,7 @@ uint32_t heap_index(size_t size)
 
 void heap_setinitialgc(size_t size)
 {
-  heap_initialgc = 1ULL << size;
+  heap_initialgc = (size_t)1 << size;
 }
 
 void heap_setnextgcfactor(double factor)

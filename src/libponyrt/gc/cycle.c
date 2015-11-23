@@ -815,9 +815,9 @@ void cycle_create(pony_ctx_t* ctx, uint32_t min_deferred,
   actor_setsystem(cycle_detector);
 
   detector_t* d = (detector_t*)cycle_detector;
-  d->min_deferred = 1ULL << min_deferred;
-  d->max_deferred = 1ULL << max_deferred;
-  d->conf_group = 1ULL << conf_group;
+  d->min_deferred = 1 << min_deferred;
+  d->max_deferred = 1 << max_deferred;
+  d->conf_group = 1 << conf_group;
   d->next_deferred = min_deferred;
 }
 
