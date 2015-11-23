@@ -94,7 +94,7 @@ static uintptr_t read_encoded_ptr(const uint8_t** data, uint8_t encoding)
       break;
 
     case DW_EH_PE_udata8:
-      result = *((uint64_t*)p);
+      result = (uintptr_t)*((uint64_t*)p);
       p += sizeof(uint64_t);
       break;
 
@@ -109,7 +109,7 @@ static uintptr_t read_encoded_ptr(const uint8_t** data, uint8_t encoding)
       break;
 
     case DW_EH_PE_sdata8:
-      result = *((int64_t*)p);
+      result = (uintptr_t)*((int64_t*)p);
       p += sizeof(int64_t);
       break;
 
