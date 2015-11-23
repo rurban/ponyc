@@ -31,9 +31,6 @@
 /// When we mmap, pull at least this many bytes.
 #define POOL_MMAP (128 * 1024 * 1024) // 128 MB
 
-/// Combines an ABA counter with a pointer.
-typedef __int128_t pool_aba_t;
-
 /// An item on a per-size thread-local free list.
 typedef struct pool_item_t
 {
@@ -64,11 +61,11 @@ typedef struct pool_cmp_t
   {
     struct
     {
-      uint64_t aba;
+      uintptr_t aba;
       pool_central_t* node;
     };
 
-    pool_aba_t dw;
+    dw_t dw;
   };
 } pool_cmp_t;
 
@@ -77,7 +74,7 @@ typedef struct pool_global_t
 {
   size_t size;
   size_t count;
-  pool_aba_t central;
+  dw_t central;
 } pool_global_t;
 
 /// An item on a thread-local list of free blocks.
