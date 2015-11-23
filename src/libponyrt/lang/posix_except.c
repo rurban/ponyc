@@ -7,6 +7,10 @@
 
 PONY_EXTERN_C_BEGIN
 
+#if defined(__arm__)
+#define _URC_FATAL_PHASE1_ERROR _URC_FAILURE
+#endif
+
 static const uint64_t exception_class = 0x506F6E7900000000; // "Pony"
 static __thread struct _Unwind_Exception exception;
 static __thread uintptr_t landing_pad;
@@ -20,7 +24,11 @@ static void exception_cleanup(_Unwind_Reason_Code reason,
 
 void pony_throw()
 {
+#if defined(__arm__)
+  memcpy(exception.exception_class, exception_class, 8);
+#else
   exception.exception_class = exception_class;
+#endif
   exception.exception_cleanup = exception_cleanup;
   _Unwind_RaiseException(&exception);
 
