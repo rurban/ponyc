@@ -34,9 +34,9 @@ static void date_to_tm(date_t* date, struct tm* tm)
   tm->tm_isdst = -1;
 }
 
-static void tm_to_date(struct tm* tm, int64_t nsec, date_t* date)
+static void tm_to_date(struct tm* tm, int nsec, date_t* date)
 {
-  date->nsec = (int)nsec;
+  date->nsec = nsec;
   date->sec = tm->tm_sec;
   date->min = tm->tm_min;
   date->hour = tm->tm_hour;
@@ -59,9 +59,9 @@ int64_t os_timegm(date_t* date)
 #endif
 }
 
-void os_gmtime(date_t* date, int64_t sec, int64_t nsec)
+void os_gmtime(date_t* date, time_t sec, long nsec)
 {
-  int64_t overflow_sec = nsec / 1000000000;
+  time_t overflow_sec = (time_t)(nsec / 1000000000);
   nsec -= (overflow_sec * 1000000000);
 
   if(nsec < 0)
@@ -80,7 +80,7 @@ void os_gmtime(date_t* date, int64_t sec, int64_t nsec)
   gmtime_r(&t, &tm);
 #endif
 
-  tm_to_date(&tm, nsec, date);
+  tm_to_date(&tm, (int)nsec, date);
 }
 
 char* os_formattime(date_t* date, const char* fmt)
