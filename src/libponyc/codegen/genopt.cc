@@ -168,7 +168,7 @@ public:
       return false;
     }
 
-    size_t alloc_size = int_size->getZExtValue();
+    uint64_t alloc_size = int_size->getZExtValue();
 
     if(small)
     {
