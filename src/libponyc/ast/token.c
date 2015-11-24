@@ -127,7 +127,7 @@ const char* token_print(token_t* token)
       if (token->printed == NULL)
         token->printed = (char*)pool_alloc_size(64);
 
-      snprintf(token->printed, 64, __zu, (size_t)token->integer.low);
+      snprintf(token->printed, 64, "%llu", token->integer.low);
       return token->printed;
 
     case TK_FLOAT:
