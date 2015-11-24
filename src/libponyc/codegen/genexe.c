@@ -273,10 +273,7 @@ static bool link_exe(compile_t* c, ast_t* program,
   const char* file_exe = suffix_filename(c->opt->output, "", c->filename, "");
   printf("Linking %s\n", file_exe);
 
-#ifdef PLATFORM_IS_FREEBSD
   use_path(program, "/usr/local/lib", NULL, NULL);
-#endif
-
   program_lib_build_args(program, "-L", "-Wl,--start-group ",
     "-Wl,--end-group ", "-l", "");
   const char* lib_args = program_lib_args(program);
