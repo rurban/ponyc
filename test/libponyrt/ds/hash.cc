@@ -37,8 +37,8 @@ DEFINE_HASHMAP(testmap, elem_t, HashMapTest::hash_tst, HashMapTest::cmp_tst,
 
 struct elem_t
 {
-  uint64_t key;
-  uint64_t val;
+  size_t key;
+  size_t val;
 };
 
 void HashMapTest::SetUp()
@@ -71,7 +71,7 @@ elem_t* HashMapTest::get_element()
 
 size_t HashMapTest::hash_tst(elem_t* p)
 {
-  return hash_int64(p->key);
+  return hash_size(p->key);
 }
 
 bool HashMapTest::cmp_tst(elem_t* a, elem_t* b)
