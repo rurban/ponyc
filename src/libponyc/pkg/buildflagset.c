@@ -330,12 +330,12 @@ bool buildflagset_get(buildflagset_t* set, const char* flag)
   ssize_t index = os_index(flag);
 
   if(index >= 0)  // OS platform flag.
-    return set->enum_os_flags == index;
+    return set->enum_os_flags == (uint32_t)index;
 
   index = size_index(flag);
 
   if(index >= 0)  // Size platform flag.
-    return set->enum_size_flags == index;
+    return set->enum_size_flags == (uint32_t)index;
 
   // Just a normal flag.
   flag_t f1 = {flag, false};
