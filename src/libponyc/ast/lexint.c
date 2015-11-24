@@ -1,4 +1,5 @@
 #include "lexint.h"
+#include <stdio.h>
 
 #if !defined(PLATFORM_IS_ILP32) && !defined(PLATFORM_IS_WINDOWS)
 #define USE_NATIVE128
@@ -226,5 +227,16 @@ bool lexint_accum(lexint_t* i, uint64_t digit, uint64_t base)
 
 double lexint_double(lexint_t* i)
 {
+  if((int64_t)i->high < 0)
+  {
+    // Treat as a signed number.
+    lexint_t t = *i;
+    t.high = ~t.high;
+    t.low = ~t.low;
+    lexint_add64(&t, &t, 1);
+
+    return -(((double)t.high * 0x1p64) + (double)t.low);
+  }
+
   return ((double)i->high * 0x1p64) + (double)i->low;
 }

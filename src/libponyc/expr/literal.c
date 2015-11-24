@@ -29,7 +29,7 @@ static struct
   { "U8", {0x100, 0}, false },
   { "U16", {0x10000, 0}, false },
   { "U32", {0x100000000LL, 0}, false },
-  { "U64", {0, 0}, false },
+  { "U64", {0, 1}, false },
   { "U128", {0, 0}, false },  // Limit checked by lexer
   { "I8", {0x80, 0}, true },
   { "I16", {0x8000, 0}, true },

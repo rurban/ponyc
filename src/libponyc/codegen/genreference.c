@@ -47,7 +47,7 @@ static LLVMValueRef make_fieldptr(compile_t* c, LLVMValueRef l_value,
     case TK_TUPLETYPE:
     {
       assert(ast_id(right) == TK_INT);
-      int index = (int)ast_int(right);
+      int index = (int)ast_int(right)->low;
 
       return LLVMBuildExtractValue(c->builder, l_value, index, "");
     }

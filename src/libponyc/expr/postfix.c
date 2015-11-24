@@ -300,8 +300,9 @@ static bool tuple_access(ast_t* ast)
 
   // Make sure our index is in bounds.  make_tuple_index automatically shifts
   // from one indexed to zero, so we have to use -1 and >= for our comparisons.
-  size_t right_idx = (size_t)ast_int(right);
+  size_t right_idx = (size_t)ast_int(right)->low;
   size_t tuple_size = ast_childcount(type);
+
   if (right_idx == (size_t)-1)
   {
     ast_error(right,
