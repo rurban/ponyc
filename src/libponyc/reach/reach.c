@@ -521,6 +521,21 @@ static void reachable_expr(reachable_method_stack_t** s, reachable_types_t* r,
       reachable_addressof(s, r, ast);
       break;
 
+    case TK_IF:
+    {
+      AST_GET_CHILDREN(ast, cond, then_clause, else_clause);
+
+      if(ast_id(cond) == TK_TRUE)
+      {
+        reachable_expr(s, r, then_clause);
+        return;
+      } else if(ast_id(cond) == TK_FALSE) {
+        reachable_expr(s, r, else_clause);
+        return;
+      }
+      break;
+    }
+
     default: {}
   }
 
