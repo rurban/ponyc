@@ -226,5 +226,5 @@ bool lexint_accum(lexint_t* i, uint64_t digit, uint64_t base)
 
 double lexint_double(lexint_t* i)
 {
-  return (i->high * 0x1p64) + i->low;
+  return ((double)i->high * 0x1p64) + (double)i->low;
 }
