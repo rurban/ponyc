@@ -570,13 +570,16 @@ static void number_conversions(compile_t* c)
     {"I16", "i16", c->i16, 16, true, false},
     {"I32", "i32", c->i32, 32, true, false},
     {"I64", "i64", c->i64, 64, true, false},
-    {"I128", "i128", c->i128, 128, true, false},
 
     {"U8", "u8", c->i8, 8, false, false},
     {"U16", "u16", c->i16, 16, false, false},
     {"U32", "u32", c->i32, 32, false, false},
     {"U64", "u64", c->i64, 64, false, false},
+
+#ifndef PLATFORM_IS_ILP32
+    {"I128", "i128", c->i128, 128, true, false},
     {"U128", "u128", c->i128, 128, false, false},
+#endif
 
     {"F32", "f32", c->f32, 32, false, true},
     {"F64", "f64", c->f64, 64, false, true},
@@ -663,13 +666,16 @@ static void number_constructors(compile_t* c)
     {"I16", c->i16},
     {"I32", c->i32},
     {"I64", c->i64},
-    {"I128", c->i128},
 
     {"U8", c->i8},
     {"U16", c->i16},
     {"U32", c->i32},
     {"U64", c->i64},
+
+#ifndef PLATFORM_IS_ILP32
+    {"I128", c->i128},
     {"U128", c->i128},
+#endif
 
     {"F32", c->f32},
     {"F64", c->f64},
