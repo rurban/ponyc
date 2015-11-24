@@ -593,27 +593,6 @@ reachable_types_t* reach_new()
   return r;
 }
 
-void reach_primitives(reachable_types_t* r, pass_opt_t* opt, ast_t* from)
-{
-  reachable_method_stack_t* s = NULL;
-
-  add_type(&s, r, type_builtin(opt, from, "Bool"));
-  add_type(&s, r, type_builtin(opt, from, "I8"));
-  add_type(&s, r, type_builtin(opt, from, "I16"));
-  add_type(&s, r, type_builtin(opt, from, "I32"));
-  add_type(&s, r, type_builtin(opt, from, "I64"));
-  add_type(&s, r, type_builtin(opt, from, "I128"));
-  add_type(&s, r, type_builtin(opt, from, "U8"));
-  add_type(&s, r, type_builtin(opt, from, "U16"));
-  add_type(&s, r, type_builtin(opt, from, "U32"));
-  add_type(&s, r, type_builtin(opt, from, "U64"));
-  add_type(&s, r, type_builtin(opt, from, "U128"));
-  add_type(&s, r, type_builtin(opt, from, "F32"));
-  add_type(&s, r, type_builtin(opt, from, "F64"));
-
-  handle_stack(s, r);
-}
-
 void reach_free(reachable_types_t* r)
 {
   if(r == NULL)

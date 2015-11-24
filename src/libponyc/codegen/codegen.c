@@ -404,7 +404,6 @@ static void init_module(compile_t* c, ast_t* program, pass_opt_t* opt)
     builtin = package;
 
   c->reachable = reach_new();
-  reach_primitives(c->reachable, opt, builtin);
 
   // The name of the first package is the name of the program.
   c->filename = package_filename(package);
