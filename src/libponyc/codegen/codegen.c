@@ -551,7 +551,7 @@ LLVMValueRef codegen_addfun(compile_t* c, const char* name, LLVMTypeRef type)
 
       if(LLVMGetTypeKind(elem) == LLVMStructTypeKind)
       {
-        uint64_t size = LLVMABISizeOfType(c->target_data, elem);
+        size_t size = (size_t)LLVMABISizeOfType(c->target_data, elem);
         LLVMSetDereferenceable(fun, i, size);
       }
 
