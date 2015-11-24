@@ -284,12 +284,9 @@ LLVMValueRef gen_int(compile_t* c, ast_t* ast)
   if(!gentype(c, type, &g))
     return NULL;
 
-  __uint128_t value = ast_int(ast);
-  uint64_t low = (uint64_t)value;
-  uint64_t high = (uint64_t)(value >> 64);
-
-  LLVMValueRef vlow = LLVMConstInt(c->i128, low, false);
-  LLVMValueRef vhigh = LLVMConstInt(c->i128, high, false);
+  lexint_t* value = ast_int(ast);
+  LLVMValueRef vlow = LLVMConstInt(c->i128, value->low, false);
+  LLVMValueRef vhigh = LLVMConstInt(c->i128, value->high, false);
   LLVMValueRef shift = LLVMConstInt(c->i128, 64, false);
   vhigh = LLVMConstShl(vhigh, shift);
   vhigh = LLVMConstAdd(vhigh, vlow);
