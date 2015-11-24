@@ -281,7 +281,7 @@ static bool link_exe(compile_t* c, ast_t* program,
     "-Wl,--end-group ", "-l", "");
   const char* lib_args = program_lib_args(program);
 
-  size_t ld_len = 512 + strlen(file_exe) + strlen(file_o) + strlen(lib_args));
+  size_t ld_len = 512 + strlen(file_exe) + strlen(file_o) + strlen(lib_args);
   char* ld_cmd = (char*)pool_alloc_size(ld_len);
 
   snprintf(ld_cmd, ld_len, PONY_COMPILER " -o %s -O3 -march=" PONY_ARCH " "
