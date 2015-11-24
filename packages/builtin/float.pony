@@ -108,7 +108,7 @@ primitive F32 is FloatingPoint[F32]
 
   fun pow(y: F32): F32 => @"llvm.pow.f32"[F32](this, y)
   fun powi(y: I32): F32 =>
-    if Platform.windows() then
+    ifdef windows then
       pow(y.f32())
     else
       @"llvm.powi.f32"[F32](this, y)
@@ -251,7 +251,7 @@ primitive F64 is FloatingPoint[F64]
 
   fun pow(y: F64): F64 => @"llvm.pow.f64"[F64](this, y)
   fun powi(y: I32): F64 =>
-    if Platform.windows() then
+    ifdef windows then
       pow(y.f64())
     else
       @"llvm.powi.f64"[F64](this, y)

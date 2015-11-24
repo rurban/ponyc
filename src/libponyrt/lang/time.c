@@ -59,7 +59,7 @@ int64_t os_timegm(date_t* date)
 #endif
 }
 
-void os_gmtime(date_t* date, time_t sec, long nsec)
+void os_gmtime(date_t* date, int64_t sec, int64_t nsec)
 {
   time_t overflow_sec = (time_t)(nsec / 1000000000);
   nsec -= (overflow_sec * 1000000000);
@@ -70,7 +70,7 @@ void os_gmtime(date_t* date, time_t sec, long nsec)
     overflow_sec--;
   }
 
-  time_t t = sec + overflow_sec;
+  time_t t = (time_t)sec + overflow_sec;
 
   struct tm tm;
 

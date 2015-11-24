@@ -770,6 +770,7 @@ static void fp_as_bits(compile_t* c)
 
 static void make_cpuid(compile_t* c)
 {
+#ifdef PLATFORM_IS_X86
   LLVMTypeRef elems[4] = {c->i32, c->i32, c->i32, c->i32};
   LLVMTypeRef r_type = LLVMStructTypeInContext(c->context, elems, 4, false);
   LLVMTypeRef f_type = LLVMFunctionType(r_type, &c->i32, 1, false);
@@ -785,10 +786,12 @@ static void make_cpuid(compile_t* c)
   LLVMBuildRet(c->builder, result);
 
   codegen_finishfun(c);
+#endif
 }
 
 static void make_rdtscp(compile_t* c)
 {
+#ifdef PLATFORM_IS_X86
   // i64 @llvm.x86.rdtscp(i8*)
   LLVMTypeRef f_type = LLVMFunctionType(c->i64, &c->void_ptr, 1, false);
   LLVMValueRef rdtscp = LLVMAddFunction(c->module, "llvm.x86.rdtscp", f_type);
@@ -807,6 +810,7 @@ static void make_rdtscp(compile_t* c)
   LLVMBuildRet(c->builder, result);
 
   codegen_finishfun(c);
+#endif
 }
 
 void genprim_builtins(compile_t* c)

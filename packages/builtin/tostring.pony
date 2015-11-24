@@ -238,7 +238,7 @@ primitive _ToString
         f.append("g")
       end
 
-      if Platform.windows() then
+      ifdef windows then
         @_snprintf[I32](s.cstring(), s.space(), f.cstring(), x)
       else
         @snprintf[I32](s.cstring(), s.space(), f.cstring(), x)

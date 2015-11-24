@@ -149,6 +149,17 @@
 # define ARMV2 1
 #endif
 
+/** Architecture flags.
+ *
+ */
+#if defined(ARMV2) || defined(__arm__) || defined(__aarch64__)
+# define PLATFORM_IS_ARM
+#elif defined(__i386__) || defined(_M_IX86) || defined(_X86_) || \
+ defined(__amd64__) || defined(__x86_64__) || defined(_M_X64) || \
+ defined(_M_AMD64)
+# define PLATFORM_IS_X86
+#endif
+
 /** Data types.
  *
  */
