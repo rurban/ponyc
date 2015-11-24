@@ -304,13 +304,14 @@ static bool tuple_access(ast_t* ast)
   size_t tuple_size = ast_childcount(type);
   if (right_idx == (size_t)-1)
   {
-    ast_error(right, "tuples are one indexed not zero indexed.  Did you mean _1?");
+    ast_error(right,
+      "tuples are one indexed not zero indexed. Did you mean _1?");
     return false;
   }
   else if (right_idx >= tuple_size)
   {
-    ast_error(right, "tuple index %ld is out of valid range.  "
-        "Valid range is [%ld, %ld]", right_idx, (size_t)1, tuple_size);
+    ast_error(right, "tuple index %zu is out of valid range. "
+      "Valid range is [1, %zu]", right_idx, tuple_size);
     return false;
   }
 
