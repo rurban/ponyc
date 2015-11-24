@@ -786,6 +786,8 @@ static void make_cpuid(compile_t* c)
   LLVMBuildRet(c->builder, result);
 
   codegen_finishfun(c);
+#else
+  (void)c;
 #endif
 }
 
@@ -810,6 +812,8 @@ static void make_rdtscp(compile_t* c)
   LLVMBuildRet(c->builder, result);
 
   codegen_finishfun(c);
+#else
+  (void)c;
 #endif
 }
 
