@@ -26,7 +26,11 @@ void LLVMSetReturnNoAlias(LLVMValueRef fun);
 void LLVMSetDereferenceable(LLVMValueRef fun, uint32_t i, size_t size);
 
 // In case we need to change the internal calling convention.
+#ifdef PLATFORM_IS_ARM
+#define GEN_CALLCONV LLVMCCallConv
+#else
 #define GEN_CALLCONV LLVMFastCallConv
+#endif
 
 #define GEN_NOVALUE ((LLVMValueRef)1)
 
