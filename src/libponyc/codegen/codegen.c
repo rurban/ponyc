@@ -242,9 +242,9 @@ static void init_runtime(compile_t* c)
   value = LLVMAddFunction(c->module, "pony_sendv", type);
   LLVMAddFunctionAttr(value, LLVMNoUnwindAttribute);
 
-  // i8* pony_alloc(i8*, i64)
+  // i8* pony_alloc(i8*, intptr)
   params[0] = c->void_ptr;
-  params[1] = c->i64;
+  params[1] = c->intptr;
   type = LLVMFunctionType(c->void_ptr, params, 2, false);
   value = LLVMAddFunction(c->module, "pony_alloc", type);
   LLVMAddFunctionAttr(value, LLVMNoUnwindAttribute);
@@ -258,26 +258,26 @@ static void init_runtime(compile_t* c)
   LLVMAddFunctionAttr(value, LLVMNoUnwindAttribute);
   LLVMSetReturnNoAlias(value);
 
-  // i8* pony_alloc_large(i8*, i64)
+  // i8* pony_alloc_large(i8*, intptr)
   params[0] = c->void_ptr;
-  params[1] = c->i64;
+  params[1] = c->intptr;
   type = LLVMFunctionType(c->void_ptr, params, 2, false);
   value = LLVMAddFunction(c->module, "pony_alloc_large", type);
   LLVMAddFunctionAttr(value, LLVMNoUnwindAttribute);
   LLVMSetReturnNoAlias(value);
 
-  // i8* pony_realloc(i8*, i8*, i64)
+  // i8* pony_realloc(i8*, i8*, intptr)
   params[0] = c->void_ptr;
   params[1] = c->void_ptr;
-  params[2] = c->i64;
+  params[2] = c->intptr;
   type = LLVMFunctionType(c->void_ptr, params, 3, false);
   value = LLVMAddFunction(c->module, "pony_realloc", type);
   LLVMAddFunctionAttr(value, LLVMNoUnwindAttribute);
   LLVMSetReturnNoAlias(value);
 
-  // i8* pony_alloc_final(i8*, i64, c->final_fn)
+  // i8* pony_alloc_final(i8*, intptr, c->final_fn)
   params[0] = c->void_ptr;
-  params[1] = c->i64;
+  params[1] = c->intptr;
   params[2] = c->final_fn;
   type = LLVMFunctionType(c->void_ptr, params, 3, false);
   value = LLVMAddFunction(c->module, "pony_alloc_final", type);

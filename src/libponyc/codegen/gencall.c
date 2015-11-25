@@ -644,11 +644,11 @@ LLVMValueRef gencall_allocstruct(compile_t* c, gentype_t* g)
       args[1] = LLVMConstInt(c->i32, index, false);
       result = gencall_runtime(c, "pony_alloc_small", args, 2, "");
     } else {
-      args[1] = LLVMConstInt(c->i64, size, false);
+      args[1] = LLVMConstInt(c->intptr, size, false);
       result = gencall_runtime(c, "pony_alloc_large", args, 2, "");
     }
   } else {
-    args[1] = LLVMConstInt(c->i64, size, false);
+    args[1] = LLVMConstInt(c->intptr, size, false);
     args[2] = LLVMConstBitCast(final_fun, c->final_fn);
     result = gencall_runtime(c, "pony_alloc_final", args, 3, "");
   }
