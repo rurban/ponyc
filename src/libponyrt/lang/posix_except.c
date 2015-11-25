@@ -1,5 +1,7 @@
 #include <platform.h>
+
 #ifdef PLATFORM_IS_POSIX_BASED
+
 #include "lsda.h"
 #include <unwind.h>
 #include <stdlib.h>
@@ -7,9 +9,9 @@
 
 PONY_EXTERN_C_BEGIN
 
-#if defined(__arm__)
+#ifdef PLATFORM_IS_ARM
 #include <string.h>
-#define _URC_FATAL_PHASE1_ERROR _URC_FAILURE
+#include <stdio.h>
 #endif
 
 static const uint64_t exception_class = 0x506F6E7900000000; // "Pony"
@@ -35,6 +37,17 @@ void pony_throw()
 
   abort();
 }
+
+#ifdef PLATFORM_IS_ARM
+
+_Unwind_Reason_Code pony_personality_v0(_Unwind_State state,
+  _Unwind_Exception* unwind_exception, _Unwind_Context* context)
+{
+  printf("pony_personality_v0\n");
+  return _URC_FAILURE;
+}
+
+#else
 
 _Unwind_Reason_Code pony_personality_v0(int version, _Unwind_Action actions,
   uint64_t ex_class, struct _Unwind_Exception* exception,
@@ -73,6 +86,8 @@ _Unwind_Reason_Code pony_personality_v0(int version, _Unwind_Action actions,
 
   return _URC_FATAL_PHASE1_ERROR;
 }
+
+#endif
 
 PONY_EXTERN_C_END
 
