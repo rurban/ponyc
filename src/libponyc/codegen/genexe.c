@@ -124,7 +124,7 @@ static void gen_main(compile_t* c, gentype_t* main_g, gentype_t* env_g)
   LLVMSetValueName(args[1], "argv");
 
   args[2] = LLVMGetParam(func, 2);
-  LLVMSetValueName(args[1], "envp");
+  LLVMSetValueName(args[2], "envp");
 
   // Initialise the pony runtime with argc and argv, getting a new argc.
   args[0] = gencall_runtime(c, "pony_init", args, 2, "argc");
