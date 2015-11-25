@@ -212,7 +212,7 @@ static void pointer_delete(compile_t* c, gentype_t* g, gentype_t* elem_g)
 {
   // Set up a constant integer for the allocation size.
   size_t size = (size_t)LLVMABISizeOfType(c->target_data, elem_g->use_type);
-  LLVMValueRef l_size = LLVMConstInt(c->i64, size, false);
+  LLVMValueRef l_size = LLVMConstInt(c->intptr, size, false);
 
   const char* name = genname_fun(g->type_name, "_delete", NULL);
 
