@@ -427,6 +427,9 @@ static LLVMValueRef genfun_fun(compile_t* c, gentype_t* g, const char *name,
     return func;
   }
 
+  if(!strcmp(name, "_final"))
+    LLVMSetFunctionCallConv(func, LLVMCCallConv);
+
   codegen_startfun(c, func, ast_debug(fun));
   name_params(c, g->ast, ast_childidx(fun, 3), func);
   genfun_dwarf(c, g, name, typeargs, fun);
