@@ -342,8 +342,8 @@ LLVMValueRef gen_string(compile_t* c, ast_t* ast)
     return NULL;
 
   args[0] = g.desc;
-  args[1] = LLVMConstInt(c->i64, len, false);
-  args[2] = LLVMConstInt(c->i64, 0, false);
+  args[1] = LLVMConstInt(c->intptr, len, false);
+  args[2] = LLVMConstInt(c->intptr, len, false);
   args[3] = str_ptr;
 
   LLVMValueRef inst = LLVMConstNamedStruct(g.structure, args, 4);
