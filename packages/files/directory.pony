@@ -80,7 +80,7 @@ class Directory
         let h = @FindFirstFile[Pointer[_DirectoryHandle]](
           search.cstring(), find)
 
-        if h.u64() == -1 then
+        if h.usize() == -1 then
           error
         end
 
@@ -161,7 +161,7 @@ class Directory
       ifdef windows or osx then
         path'.mkdir()
       else
-        var offset: I64 = 0
+        var offset: ISize = 0
 
         repeat
           let element = try

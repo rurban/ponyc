@@ -112,11 +112,15 @@ static void init_runtime(compile_t* c)
   c->str_I32 = stringtab("I32");
   c->str_I64 = stringtab("I64");
   c->str_I128 = stringtab("I128");
+  c->str_ILong = stringtab("ILong");
+  c->str_ISize = stringtab("ISize");
   c->str_U8 = stringtab("U8");
   c->str_U16 = stringtab("U16");
   c->str_U32 = stringtab("U32");
   c->str_U64 = stringtab("U64");
   c->str_U128 = stringtab("U128");
+  c->str_ULong = stringtab("ULong");
+  c->str_USize = stringtab("USize");
   c->str_F32 = stringtab("F32");
   c->str_F64 = stringtab("F64");
   c->str_Pointer = stringtab("Pointer");

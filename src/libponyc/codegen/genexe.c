@@ -140,7 +140,7 @@ static void gen_main(compile_t* c, gentype_t* main_g, gentype_t* env_g)
 
   LLVMValueRef env_args[4];
   env_args[0] = gencall_alloc(c, env_g);
-  env_args[1] = LLVMBuildZExt(c->builder, args[0], c->i64, "");
+  env_args[1] = args[0];
   env_args[2] = args[1];
   env_args[3] = args[2];
 

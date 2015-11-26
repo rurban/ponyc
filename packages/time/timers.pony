@@ -5,13 +5,13 @@ actor Timers
   A hierarchical set of timing wheels.
   """
   var _current: U64 = 0
-  let _slop: U64
+  let _slop: USize
   let _map: MapIs[Timer tag, Timer] = MapIs[Timer tag, Timer]
   let _wheel: Array[_TimingWheel] = Array[_TimingWheel](_wheels())
   let _pending: List[Timer] = List[Timer]
   var _event: AsioEventID = AsioEvent.none()
 
-  new create(slop: U64 = 20) =>
+  new create(slop: USize = 20) =>
     """
     Create a timer handler with the specified number of slop bits. No slop bits
     means trying for nanosecond resolution. 10 slop bits is approximately
@@ -146,7 +146,7 @@ actor Timers
     end
 
     if next != -1 then
-      next = next << _slop
+      next = next << _slop.u64()
     end
 
     next
@@ -156,7 +156,7 @@ actor Timers
     Set the current time with precision reduced by the slop bits. Return the
     elapsed time.
     """
-    let previous = _current = Time.nanos() >> _slop
+    let previous = _current = Time.nanos() >> _slop.u64()
     _current - previous
 
   fun ref _get_wheel(rem: U64): _TimingWheel ? =>
@@ -164,7 +164,7 @@ actor Timers
     Get the hierarchical timing wheel for the given time until expiration.
     """
     let t = rem.min(_expiration_max())
-    let i = ((t.bitwidth() - t.clz()) - 1) / _bits()
+    let i = ((t.bitwidth() - t.clz()) - 1).usize() / _bits()
     _wheel(i)
 
   fun tag _expiration_max(): U64 =>
@@ -172,7 +172,7 @@ actor Timers
     Get the maximum time the timing wheels cover. Anything beyond this is
     scheduled on the last timing wheel.
     """
-    (1 << (_wheels() * _bits())) - 1
+    ((1 << (_wheels() * _bits())) - 1).u64()
 
-  fun tag _wheels(): U64 => 4
-  fun tag _bits(): U64 => 6
+  fun tag _wheels(): USize => 4
+  fun tag _bits(): USize => 6

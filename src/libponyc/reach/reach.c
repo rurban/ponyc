@@ -549,13 +549,6 @@ static void reachable_expr(reachable_method_stack_t** s, reachable_types_t* r,
   }
 }
 
-static void reachable_body(reachable_method_stack_t** s, reachable_types_t* r,
-  ast_t* fun)
-{
-  AST_GET_CHILDREN(fun, cap, id, typeparams, params, result, can_error, body);
-  reachable_expr(s, r, body);
-}
-
 static void reachable_method(reachable_method_stack_t** s,
   reachable_types_t* r, ast_t* type, const char* name, ast_t* typeargs)
 {
@@ -597,7 +590,20 @@ static void handle_stack(reachable_method_stack_t* s, reachable_types_t* r)
   {
     reachable_method_t* m;
     s = reachable_method_stack_pop(s, &m);
-    reachable_body(&s, r, m->r_fun);
+
+    AST_GET_CHILDREN(m->r_fun, cap, id, typeparams, params, result, can_error,
+      body);
+
+    ast_t* param = ast_child(params);
+
+    while(param != NULL)
+    {
+      AST_GET_CHILDREN(param, p_id, p_type);
+      add_type(&s, r, p_type);
+      param = ast_sibling(param);
+    }
+
+    reachable_expr(&s, r, body);
   }
 }
 

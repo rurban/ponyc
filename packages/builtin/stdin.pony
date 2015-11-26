@@ -101,13 +101,14 @@ actor Stdin
     """
     try
       let notify = _notify as StdinNotify
-      var sum: U64 = 0
+      var sum: USize = 0
 
       while true do
-        var len = U64(64)
+        var len = USize(64)
         var data = recover Array[U8].undefined(len) end
         var again: Bool = false
-        len = @os_stdin_read[U64](data.cstring(), data.space(),
+
+        len = @os_stdin_read[USize](data.cstring(), data.space(),
           addressof again)
 
         match len

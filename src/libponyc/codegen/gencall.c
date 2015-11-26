@@ -143,10 +143,14 @@ static bool special_case_call(compile_t* c, ast_t* ast, LLVMValueRef* value)
     (name == c->str_I16) ||
     (name == c->str_I32) ||
     (name == c->str_I64) ||
+    (name == c->str_ILong) ||
+    (name == c->str_ISize) ||
     (name == c->str_U8) ||
     (name == c->str_U16) ||
     (name == c->str_U32) ||
     (name == c->str_U64) ||
+    (name == c->str_ULong) ||
+    (name == c->str_USize) ||
     (name == c->str_F32) ||
     (name == c->str_F64)
     )
@@ -409,11 +413,15 @@ LLVMValueRef gen_pattern_eq(compile_t* c, ast_t* pattern, LLVMValueRef r_value)
       (name == c->str_I32) ||
       (name == c->str_I64) ||
       (name == c->str_I128) ||
+      (name == c->str_ILong) ||
+      (name == c->str_ISize) ||
       (name == c->str_U8) ||
       (name == c->str_U16) ||
       (name == c->str_U32) ||
       (name == c->str_U64) ||
       (name == c->str_U128) ||
+      (name == c->str_ULong) ||
+      (name == c->str_USize) ||
       (name == c->str_F32) ||
       (name == c->str_F64)
       )

@@ -14,10 +14,10 @@
 
 #define UIF_ERROR       -1
 #define UIF_NO_TYPES    0
-#define UIF_INT_MASK    0x03FF
-#define UIF_ALL_TYPES   0x0FFF
-#define UIF_CONSTRAINED 0x1000
-#define UIF_COUNT       12
+#define UIF_INT_MASK    0x03FFF
+#define UIF_ALL_TYPES   0x0FFFF
+#define UIF_CONSTRAINED 0x10000
+#define UIF_COUNT       16
 
 static struct
 {
@@ -31,11 +31,15 @@ static struct
   { "U32", {0x100000000LL, 0}, false },
   { "U64", {0, 1}, false },
   { "U128", {0, 0}, false },  // Limit checked by lexer
+  { "ULong", {0, 1}, false }, // Limited to 64 bits
+  { "USize", {0, 1}, false }, // Limited to 64 bits
   { "I8", {0x80, 0}, true },
   { "I16", {0x8000, 0}, true },
   { "I32", {0x80000000, 0}, true },
   { "I64", {0x8000000000000000ULL, 0}, true },
   { "I128", {0, 0x8000000000000000ULL}, true },
+  { "ILong", {0x8000000000000000ULL, 0}, true }, // Limited to 64 bits
+  { "ISize", {0x8000000000000000ULL, 0}, true }, // Limited to 64 bits
   { "F32", {0, 0}, false },
   { "F64", {0, 0}, false }
 };

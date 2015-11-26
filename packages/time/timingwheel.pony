@@ -5,17 +5,15 @@ class _TimingWheel
   A timing wheel in a hierarchical set of timing wheels. Each wheel covers 6
   bits of precision.
   """
-  let _index: U64
-  let _shift: U64
-  let _adjust: U64
-  var _pending: U64 = 0
+  let _shift: USize
+  let _adjust: USize
+  var _pending: USize = 0
   let _list: Array[List[Timer]]
 
-  new create(index: U64) =>
+  new create(index: USize) =>
     """
     Create a timing wheel at the given hierarchical level.
     """
-    _index = index
     _shift = index * _bits()
     _adjust = if index > 0 then 1 else 0 end
     _list = Array[List[Timer]](_max())
@@ -29,7 +27,7 @@ class _TimingWheel
     Schedule a timer on this wheel. Mark the bit indicating that the given slot
     has timers in its list.
     """
-    let slot = ((timer._next() >> _shift) - _adjust) and _mask()
+    let slot = ((timer._next() >> _shift.u64()).usize() - _adjust) and _mask()
 
     try
       let list = _list(slot)
@@ -44,10 +42,10 @@ class _TimingWheel
     previous advance. Returns true if the next timing wheel in the hierarchy
     should be advanced.
     """
-    let time = (elapsed >> _shift).max(1)
+    let time = (elapsed >> _shift.u64()).max(1)
     let pending =
-      if time <= _mask() then
-        let slot = time and _mask()
+      if time <= _mask().u64() then
+        let slot = time.usize() and _mask()
         let slots = (1 << slot) - 1
         let old_slot = _slot(current - elapsed)
         let new_slot = _slot(current)
@@ -74,8 +72,9 @@ class _TimingWheel
     """
     if _pending != 0 then
       let slot = _slot(current)
-      let mask = (1 << _shift) - 1
-      ((_pending.rotr(slot).ctz() + _adjust) << _shift) - (current and mask)
+      let mask = (1 << _shift.u64()) - 1
+      ((_pending.rotr(slot).ctz() + _adjust).u64() << _shift.u64()) -
+        (current and mask)
     else
       -1
     end
@@ -90,12 +89,12 @@ class _TimingWheel
       end
     end
 
-  fun _slot(time: U64): U64 =>
+  fun _slot(time: U64): USize =>
     """
     Return the slot for a given time.
     """
-    (time >> _shift) and _mask()
+    (time >> _shift.u64()).usize() and _mask()
 
-  fun tag _bits(): U64 => 6
-  fun tag _max(): U64 => 1 << _bits()
-  fun tag _mask(): U64 => _max() - 1
+  fun tag _bits(): USize => 6
+  fun tag _max(): USize => 1 << _bits()
+  fun tag _mask(): USize => _max() - 1

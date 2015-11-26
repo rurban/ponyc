@@ -2,9 +2,9 @@ interface val ByteSeq
   """
   Accept both a String and an Array[U8].
   """
-  fun size(): U64
+  fun size(): USize
   fun cstring(): Pointer[U8] tag
-  fun apply(i: U64): U8 ?
+  fun apply(i: USize): U8 ?
 
 interface val ByteSeqIter
   """

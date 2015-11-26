@@ -236,9 +236,15 @@ static LLVMValueRef gen_identity_from_value(compile_t* c, LLVMValueRef value)
       uint32_t width = LLVMGetIntTypeWidth(type);
 
       if(width < 64)
+      {
         value = LLVMBuildZExt(c->builder, value, c->i64, "");
-      else if(width > 64)
+      } else if(width == 128) {
+        LLVMValueRef shift = LLVMConstInt(c->i128, 64, false);
+        LLVMValueRef high = LLVMBuildLShr(c->builder, value, shift, "");
+        high = LLVMBuildTrunc(c->builder, high, c->i64, "");
         value = LLVMBuildTrunc(c->builder, value, c->i64, "");
+        value = LLVMBuildXor(c->builder, value, high, "");
+      }
 
       return value;
     }

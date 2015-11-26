@@ -70,11 +70,15 @@ typedef struct compile_t
   const char* str_I32;
   const char* str_I64;
   const char* str_I128;
+  const char* str_ILong;
+  const char* str_ISize;
   const char* str_U8;
   const char* str_U16;
   const char* str_U32;
   const char* str_U64;
   const char* str_U128;
+  const char* str_ULong;
+  const char* str_USize;
   const char* str_F32;
   const char* str_F64;
   const char* str_Pointer;

@@ -26,7 +26,7 @@ class SSL
   var _input: Pointer[_BIO] tag
   var _output: Pointer[_BIO] tag
   var _state: SSLState = SSLHandshake
-  var _last_read: U64 = 64
+  var _last_read: USize = 64
 
   new _create(ctx: Pointer[_SSLContext] tag, server: Bool, verify: Bool,
     hostname: String = "") ?
@@ -84,7 +84,7 @@ class SSL
     let pending = @SSL_pending[I32](_ssl)
 
     if pending > 0 then
-      let buf = recover Array[U8].undefined(pending.u64()) end
+      let buf = recover Array[U8].undefined(pending.usize()) end
       @SSL_read[I32](_ssl, buf.cstring(), pending)
       buf
     else
@@ -99,11 +99,11 @@ class SSL
         error
       end
 
-      if r.u64() == _last_read then
+      if r.usize() == _last_read then
         _last_read = _last_read * 2
       end
 
-      buf.truncate(r.u64())
+      buf.truncate(r.usize())
       buf
     end
 
@@ -145,7 +145,7 @@ class SSL
     let len = @BIO_ctrl_pending[I32](_output)
     if len == 0 then error end
 
-    let buf = recover Array[U8].undefined(len.u64()) end
+    let buf = recover Array[U8].undefined(len.usize()) end
     @BIO_read[I32](_output, buf.cstring(), len)
     buf
 

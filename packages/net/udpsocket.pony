@@ -6,44 +6,47 @@ actor UDPSocket
   var _event: AsioEventID
   var _readable: Bool = false
   var _closed: Bool = false
-  var _packet_size: U64
+  var _packet_size: USize
   var _read_buf: Array[U8] iso = recover Array[U8].undefined(64) end
   var _read_from: IPAddress iso = recover IPAddress end
 
   new create(notify: UDPNotify iso, host: String = "", service: String = "0",
-    size: U64 = 1024)
+    size: USize = 1024)
   =>
     """
     Listens for both IPv4 and IPv6 datagrams.
     """
     _notify = consume notify
-    _event = @os_listen_udp[AsioEventID](this, host.cstring(), service.cstring())
+    _event = @os_listen_udp[AsioEventID](this, host.cstring(),
+      service.cstring())
     _fd = @asio_event_data[U64](_event)
     _packet_size = size
     _notify_listening()
     _start_next_read()
 
   new ip4(notify: UDPNotify iso, host: String = "", service: String = "0",
-    size: U64 = 1024)
+    size: USize = 1024)
   =>
     """
     Listens for IPv4 datagrams.
     """
     _notify = consume notify
-    _event = @os_listen_udp4[AsioEventID](this, host.cstring(), service.cstring())
+    _event = @os_listen_udp4[AsioEventID](this, host.cstring(),
+      service.cstring())
     _fd = @asio_event_data[U64](_event)
     _packet_size = size
     _notify_listening()
     _start_next_read()
 
   new ip6(notify: UDPNotify iso, host: String = "", service: String = "0",
-    size: U64 = 1024)
+    size: USize = 1024)
   =>
     """
     Listens for IPv6 datagrams.
     """
     _notify = consume notify
-    _event = @os_listen_udp6[AsioEventID](this, host.cstring(), service.cstring())
+    _event = @os_listen_udp6[AsioEventID](this, host.cstring(),
+      service.cstring())
     _fd = @asio_event_data[U64](_event)
     _packet_size = size
     _notify_listening()
@@ -162,13 +165,14 @@ actor UDPSocket
     """
     if not Platform.windows() then
       try
-        var sum: U64 = 0
+        var sum: USize = 0
 
         while _readable do
           var len = _packet_size
           var data = recover Array[U8].undefined(len) end
           var from = recover IPAddress end
-          len = @os_recvfrom[U64](_event, data.cstring(), data.space(), from) ?
+          len = @os_recvfrom[USize](_event, data.cstring(), data.space(),
+            from) ?
 
           if len == 0 then
             _readable = false
@@ -198,7 +202,7 @@ actor UDPSocket
     if Platform.windows() then
       var next = _read_buf.space()
 
-      match len
+      match len.usize()
       | 0 =>  // Socket has been closed
         _readable = false
         _close()
@@ -215,7 +219,7 @@ actor UDPSocket
       // Hand back read data
       let data = _read_buf = recover Array[U8].undefined(next) end
       let from = _read_from = recover IPAddress end
-      data.truncate(len)
+      data.truncate(len.usize())
       _notify.received(this, consume data, consume from)
 
       _start_next_read()
@@ -228,7 +232,7 @@ actor UDPSocket
     """
     if Platform.windows() then
       try
-        @os_recvfrom[U64](_event, _read_buf.cstring(), _read_buf.space(),
+        @os_recvfrom[USize](_event, _read_buf.cstring(), _read_buf.space(),
           _read_from) ?
       else
         _readable = false
@@ -242,7 +246,7 @@ actor UDPSocket
     """
     if not _closed then
       try
-        @os_sendto[U64](_fd, data.cstring(), data.size(), to) ?
+        @os_sendto[USize](_fd, data.cstring(), data.size(), to) ?
       else
         _close()
       end

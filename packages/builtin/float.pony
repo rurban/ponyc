@@ -71,15 +71,13 @@ primitive F32 is FloatingPoint[F32]
     38
 
   fun abs(): F32 => @"llvm.fabs.f32"[F32](this)
-  fun min(y: F32): F32 => if this < y then this else y end
-    //@"llvm.minnum.f32"[F32](this, y)
-  fun max(y: F32): F32 => if this > y then this else y end
-    //@"llvm.maxnum.f32"[F32](this, y)
-
   fun ceil(): F32 => @"llvm.ceil.f32"[F32](this)
   fun floor(): F32 => @"llvm.floor.f32"[F32](this)
   fun round(): F32 => @"llvm.round.f32"[F32](this)
   fun trunc(): F32 => @"llvm.trunc.f32"[F32](this)
+
+  fun min(y: F32): F32 => if this < y then this else y end
+  fun max(y: F32): F32 => if this > y then this else y end
 
   fun finite(): Bool =>
     """
@@ -214,15 +212,13 @@ primitive F64 is FloatingPoint[F64]
     308
 
   fun abs(): F64 => @"llvm.fabs.f64"[F64](this)
-  fun min(y: F64): F64 => if this < y then this else y end
-    //@"llvm.minnum.f64"[F64](this, y)
-  fun max(y: F64): F64 => if this > y then this else y end
-    //@"llvm.maxnum.f64"[F64](this, y)
-
   fun ceil(): F64 => @"llvm.ceil.f64"[F64](this)
   fun floor(): F64 => @"llvm.floor.f64"[F64](this)
   fun round(): F64 => @"llvm.round.f64"[F64](this)
   fun trunc(): F64 => @"llvm.trunc.f64"[F64](this)
+
+  fun min(y: F64): F64 => if this < y then this else y end
+  fun max(y: F64): F64 => if this > y then this else y end
 
   fun finite(): Bool =>
     """

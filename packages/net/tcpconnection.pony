@@ -15,7 +15,7 @@ actor TCPConnection
   var _closed: Bool = false
   var _shutdown: Bool = false
   var _shutdown_peer: Bool = false
-  let _pending: List[(ByteSeq, U64)] = _pending.create()
+  let _pending: List[(ByteSeq, USize)] = _pending.create()
   var _read_buf: Array[U8] iso = recover Array[U8].undefined(64) end
 
   new create(notify: TCPConnectionNotify iso, host: String, service: String,
@@ -216,14 +216,14 @@ actor TCPConnection
       if Platform.windows() then
         try
           // Add an IOCP write.
-          @os_send[U64](_event, data.cstring(), data.size()) ?
+          @os_send[USize](_event, data.cstring(), data.size()) ?
           _pending.push((data, 0))
         end
       else
         if _writeable then
           try
             // Send as much data as possible.
-            var len = @os_send[U64](_event, data.cstring(), data.size()) ?
+            var len = @os_send[USize](_event, data.cstring(), data.size()) ?
 
             if len < data.size() then
               // Send any remaining data later.
@@ -247,7 +247,7 @@ actor TCPConnection
     This occurs only with IOCP on Windows.
     """
     if Platform.windows() then
-      var rem = len
+      var rem = len.usize()
 
       if rem == 0 then
         // IOCP reported a failed write on this chunk. Non-graceful shutdown.
@@ -285,7 +285,7 @@ actor TCPConnection
           (let data, let offset) = node()
 
           // Write as much data as possible.
-          let len = @os_send[U64](_event, data.cstring().u64() + offset,
+          let len = @os_send[USize](_event, data.cstring().usize() + offset,
             data.size() - offset) ?
 
           if (len + offset) < data.size() then
@@ -311,7 +311,7 @@ actor TCPConnection
     if Platform.windows() then
       var next = _read_buf.space()
 
-      match len
+      match len.usize()
       | 0 =>
         // The socket has been closed from the other side, or a hard close has
         // cancelled the queued read.
@@ -324,7 +324,7 @@ actor TCPConnection
       end
 
       let data = _read_buf = recover Array[U8].undefined(next) end
-      data.truncate(len)
+      data.truncate(len.usize())
 
       _queue_read()
       _notify.received(this, consume data)
@@ -336,7 +336,7 @@ actor TCPConnection
     """
     if Platform.windows() then
       try
-        @os_recv[U64](_event, _read_buf.cstring(), _read_buf.space()) ?
+        @os_recv[USize](_event, _read_buf.cstring(), _read_buf.space()) ?
       else
         _hard_close()
       end
@@ -350,12 +350,12 @@ actor TCPConnection
     """
     if not Platform.windows() then
       try
-        var sum: U64 = 0
+        var sum: USize = 0
 
         while _readable and not _shutdown_peer do
           // Read as much data as possible.
           let len =
-            @os_recv[U64](_event, _read_buf.cstring(), _read_buf.space()) ?
+            @os_recv[USize](_event, _read_buf.cstring(), _read_buf.space()) ?
 
           var next = _read_buf.space()
 

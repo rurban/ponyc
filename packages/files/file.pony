@@ -17,13 +17,13 @@ primitive CreateFile
   fun apply(from: FilePath): (File | FileErrNo) =>
     let file = File(from)
     let err = file.errno()
-    
+
     match err
     | FileOK => file
     else
       err
     end
-    
+
 primitive OpenFile
   """
   Open a File for read only.
@@ -31,7 +31,7 @@ primitive OpenFile
   fun apply(from: FilePath): (File | FileErrNo) =>
     let file = File.open(from)
     let err = file.errno()
-    
+
     match err
     | FileOK => file
     else
@@ -46,7 +46,7 @@ class File
   let writeable: Bool
   var _fd: I32
   var _handle: Pointer[_FileHandle]
-  var _last_line_length: U64 = 256
+  var _last_line_length: USize = 256
   var _errno: FileErrNo = FileOK
 
   new create(from: FilePath) =>
@@ -105,7 +105,8 @@ class File
     if not from.caps(FileRead) then
       _errno = FileError
     else
-      _handle = @fopen[Pointer[_FileHandle]](from.path.cstring(), "rb".cstring())
+      _handle = @fopen[Pointer[_FileHandle]](from.path.cstring(),
+        "rb".cstring())
 
       if _handle.is_null() then
         _errno = FileError
@@ -176,7 +177,7 @@ class File
       error
     end
 
-    var offset: U64 = 0
+    var offset: USize = 0
     var len = _last_line_length
     var result = recover String end
     var done = false
@@ -186,11 +187,11 @@ class File
 
       let r = if Platform.linux() then
         @fgets_unlocked[Pointer[U8]](
-          result.cstring().u64() + offset, len - offset, _handle
+          result.cstring().usize() + offset, len - offset, _handle
           )
       else
         @fgets[Pointer[U8]](
-          result.cstring().u64() + offset, len - offset, _handle
+          result.cstring().usize() + offset, len - offset, _handle
           )
       end
 
@@ -225,7 +226,7 @@ class File
     _last_line_length = len
     result
 
-  fun ref read(len: U64): Array[U8] iso^ =>
+  fun ref read(len: USize): Array[U8] iso^ =>
     """
     Returns up to len bytes.
     """
@@ -233,9 +234,9 @@ class File
       let result = recover Array[U8].undefined(len) end
 
       let r = if Platform.linux() then
-        @fread_unlocked[U64](result.cstring(), U64(1), len, _handle)
+        @fread_unlocked[USize](result.cstring(), USize(1), len, _handle)
       else
-        @fread[U64](result.cstring(), U64(1), len, _handle)
+        @fread[USize](result.cstring(), USize(1), len, _handle)
       end
 
       result.truncate(r)
@@ -244,7 +245,7 @@ class File
       recover Array[U8] end
     end
 
-  fun ref read_string(len: U64): String iso^ =>
+  fun ref read_string(len: USize): String iso^ =>
     """
     Returns up to len bytes. The resulting string may have internal null
     characters.
@@ -253,9 +254,9 @@ class File
       let result = recover String(len) end
 
       let r = if Platform.linux() then
-        @fread_unlocked[U64](result.cstring(), U64(1), len, _handle)
+        @fread_unlocked[USize](result.cstring(), USize(1), len, _handle)
       else
-        @fread[U64](result.cstring(), U64(1), len, _handle)
+        @fread[USize](result.cstring(), USize(1), len, _handle)
       end
 
       result.truncate(r)
@@ -288,9 +289,9 @@ class File
     """
     if writeable and (not _handle.is_null()) then
       let len = if Platform.linux() then
-        @fwrite_unlocked[U64](data.cstring(), U64(1), data.size(), _handle)
+        @fwrite_unlocked[USize](data.cstring(), USize(1), data.size(), _handle)
       else
-        @fwrite[U64](data.cstring(), U64(1), data.size(), _handle)
+        @fwrite[USize](data.cstring(), USize(1), data.size(), _handle)
       end
 
       if len == data.size() then
@@ -312,49 +313,49 @@ class File
     end
     true
 
-  fun position(): U64 =>
+  fun position(): USize =>
     """
     Return the current cursor position in the file.
     """
     if not _handle.is_null() then
       if Platform.windows() then
-        @_ftelli64[U64](_handle)
+        @_ftelli64[U64](_handle).usize()
       else
-        @ftell[U64](_handle)
+        @ftell[USize](_handle)
       end
     else
       0
     end
 
-  fun ref size(): U64 =>
+  fun ref size(): USize =>
     """
     Return the total length of the file.
     """
     let pos = position()
     _seek(0, 2)
     let len = position()
-    _seek(pos.i64(), 0)
+    _seek(pos.isize(), 0)
     len
 
-  fun ref seek_start(offset: U64): File =>
+  fun ref seek_start(offset: USize): File =>
     """
     Set the cursor position relative to the start of the file.
     """
     if path.caps(FileSeek) then
-      _seek(offset.i64(), 0)
+      _seek(offset.isize(), 0)
     end
     this
 
-  fun ref seek_end(offset: U64): File =>
+  fun ref seek_end(offset: USize): File =>
     """
     Set the cursor position relative to the end of the file.
     """
     if path.caps(FileSeek) then
-      _seek(-offset.i64(), 2)
+      _seek(-offset.isize(), 2)
     end
     this
 
-  fun ref seek(offset: I64): File =>
+  fun ref seek(offset: ISize): File =>
     """
     Move the cursor position.
     """
@@ -390,7 +391,7 @@ class File
     end
     this
 
-  fun ref set_length(len: U64): Bool =>
+  fun ref set_length(len: USize): Bool =>
     """
     Change the file size. If it is made larger, the new contents are undefined.
     """
@@ -458,7 +459,7 @@ class File
       _fd = -1
     end
 
-  fun ref _seek(offset: I64, base: I32) =>
+  fun ref _seek(offset: ISize, base: I32) =>
     """
     Move the cursor position.
     """

@@ -85,7 +85,7 @@ class val FilePath
       return false
     end
 
-    var offset: I64 = 0
+    var offset: ISize = 0
 
     repeat
       let element = try
