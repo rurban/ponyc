@@ -294,6 +294,7 @@ static void make_dispatch(compile_t* c, gentype_t* g)
   // Create a dispatch function.
   const char* dispatch_name = genname_dispatch(g->type_name);
   g->dispatch_fn = codegen_addfun(c, dispatch_name, c->dispatch_type);
+  LLVMSetFunctionCallConv(g->dispatch_fn, LLVMCCallConv);
   codegen_startfun(c, g->dispatch_fn, false);
 
   LLVMBasicBlockRef unreachable = codegen_block(c, "unreachable");
