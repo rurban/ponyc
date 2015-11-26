@@ -63,6 +63,8 @@ class iso _TestBuffer is UnitTest
     ifdef not ilp32 then
       h.expect_eq[U128](b.u128_be(), 0xDEADBEEFFEEDFACEDEADBEEFFEEDFACE)
       h.expect_eq[U128](b.u128_le(), 0xDEADBEEFFEEDFACEDEADBEEFFEEDFACE)
+    else
+      b.skip(32)
     end
 
     h.expect_eq[String](b.line(), "hi")
