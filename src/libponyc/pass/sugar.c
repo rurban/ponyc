@@ -365,14 +365,12 @@ static void sugar_docstring(ast_t* ast)
 }
 
 
-// Check the parameters of the given method are proper parameters and not
+// Check the parameters are proper parameters and not
 // something nasty let in by the case method value parsing.
-static ast_result_t check_params(ast_t* method)
+static ast_result_t check_params(ast_t* params)
 {
-  assert(method != NULL);
-
+  assert(params != NULL);
   ast_result_t result = AST_OK;
-  ast_t* params = ast_childidx(method, 3);
 
   // Check each parameter.
   for(ast_t* p = ast_child(params); p != NULL; p = ast_sibling(p))
@@ -395,6 +393,19 @@ static ast_result_t check_params(ast_t* method)
       result = AST_ERROR;
     }
   }
+
+  return result;
+}
+
+
+// Check for leftover stuff from case methods.
+static ast_result_t check_method(ast_t* method)
+{
+  assert(method != NULL);
+
+  ast_result_t result = AST_OK;
+  ast_t* params = ast_childidx(method, 3);
+  result = check_params(params);
 
   // Also check the guard expression doesn't exist.
   ast_t* guard = ast_childidx(method, 8);
@@ -436,7 +447,7 @@ static ast_result_t sugar_new(typecheck_t* t, ast_t* ast)
   }
 
   sugar_docstring(ast);
-  return check_params(ast);
+  return check_method(ast);
 }
 
 
@@ -452,7 +463,7 @@ static ast_result_t sugar_be(typecheck_t* t, ast_t* ast)
   }
 
   sugar_docstring(ast);
-  return check_params(ast);
+  return check_method(ast);
 }
 
 
@@ -492,7 +503,7 @@ static ast_result_t sugar_fun(ast_t* ast)
 {
   fun_defaults(ast);
   sugar_docstring(ast);
-  return check_params(ast);
+  return check_method(ast);
 }
 
 
@@ -1089,6 +1100,9 @@ static ast_result_t sugar_ffi(ast_t* ast)
 
   ast_t* new_id = ast_from_string(id, stringtab_consume(new_name, len + 2));
   ast_replace(&id, new_id);
+
+  if(ast_id(ast) == TK_FFIDECL)
+    return check_params(args);
 
   return AST_OK;
 }
