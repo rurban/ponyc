@@ -375,6 +375,9 @@ static ast_result_t check_params(ast_t* params)
   // Check each parameter.
   for(ast_t* p = ast_child(params); p != NULL; p = ast_sibling(p))
   {
+    if(ast_id(p) == TK_ELLIPSIS)
+      continue;
+
     AST_GET_CHILDREN(p, id, type, def_arg);
 
     if(ast_id(id) != TK_ID)
