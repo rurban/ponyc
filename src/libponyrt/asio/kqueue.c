@@ -176,7 +176,7 @@ void asio_event_subscribe(asio_event_t* ev)
     retry_loop(b);
 }
 
-void asio_event_update(asio_event_t* ev, uint64_t data)
+void asio_event_setnsec(asio_event_t* ev, uint64_t nsec)
 {
   if((ev == NULL) ||
     (ev->magic != ev) ||
@@ -194,12 +194,14 @@ void asio_event_update(asio_event_t* ev, uint64_t data)
 
   if(ev->flags & ASIO_TIMER)
   {
+    ev->nsec = nsec;
+
 #ifdef PLATFORM_IS_FREEBSD
     EV_SET(&event[i], (uintptr_t)ev, EVFILT_TIMER, EV_ADD | EV_ONESHOT,
-      0, data / 1000000, ev);
+      0, ev->nsec / 1000000, ev);
 #else
     EV_SET(&event[i], (uintptr_t)ev, EVFILT_TIMER, EV_ADD | EV_ONESHOT,
-      NOTE_NSECONDS, data, ev);
+      NOTE_NSECONDS, ev->nsec, ev);
 #endif
     i++;
   }
