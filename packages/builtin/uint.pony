@@ -314,6 +314,7 @@ primitive U128 is _UnsignedInteger[U128]
   fun bitwidth(): U128 => 128
   fun min(y: U128): U128 => if this < y then this else y end
   fun max(y: U128): U128 => if this > y then this else y end
+  fun hash(): U64 => ((this >> 64).u64() xor this.u64()).hash()
 
   fun string(fmt: FormatInt = FormatDefault,
     prefix: PrefixNumber = PrefixDefault, prec: USize = 1, width: USize = 0,

@@ -255,6 +255,7 @@ primitive I128 is _SignedInteger[I128, U128]
   fun bitwidth(): I128 => 128
   fun min(y: I128): I128 => if this < y then this else y end
   fun max(y: I128): I128 => if this > y then this else y end
+  fun hash(): U64 => ((this.u128() >> 64).u64() xor this.u64()).hash()
 
   fun string(fmt: FormatInt = FormatDefault,
     prefix: PrefixNumber = PrefixDefault, prec: USize = 1, width: USize = 0,
