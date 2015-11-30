@@ -1,10 +1,7 @@
 use "net"
 
-use @SSL_ctrl[I32](ssl: Pointer[_SSL], op: I32, arg: I32,
-  parg: Pointer[U8] tag) if windows
-
-use @SSL_ctrl[I64](ssl: Pointer[_SSL], op: I32, arg: I64,
-  parg: Pointer[U8] tag) if not windows
+use @SSL_ctrl[ILong](ssl: Pointer[_SSL], op: I32, arg: ILong,
+  parg: Pointer[None])
 
 primitive _SSL
 primitive _BIO
@@ -56,11 +53,7 @@ class SSL
       not DNS.is_ip6(_hostname)
     then
       // SSL_set_tlsext_host_name
-      ifdef windows then
-        @SSL_ctrl(_ssl, 55, 0, _hostname.cstring())
-      else
-        @SSL_ctrl(_ssl, 55, 0, _hostname.cstring())
-      end
+      @SSL_ctrl(_ssl, 55, 0, _hostname.cstring())
     end
 
     if server then

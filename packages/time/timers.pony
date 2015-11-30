@@ -1,5 +1,11 @@
 use "collections"
 
+use @asio_event_create[AsioEventID](owner: AsioEventNotify, fd: U32,
+  flags: U32, nsec: U64, noisy: Bool)
+use @asio_event_setnsec[U32](event: AsioEventID, nsec: U64)
+use @asio_event_unsubscribe[None](event: AsioEventID)
+use @asio_event_destroy[None](event: AsioEventID)
+
 actor Timers
   """
   A hierarchical set of timing wheels.
@@ -46,7 +52,7 @@ actor Timers
 
       if (_map.size() == 0) and (not _event.is_null()) then
         // Unsubscribe an existing event.
-        @asio_event_unsubscribe[None](_event)
+        @asio_event_unsubscribe(_event)
         _event = AsioEvent.none()
       end
     end
@@ -61,16 +67,16 @@ actor Timers
     _map.clear()
 
     if not _event.is_null() then
-      @asio_event_unsubscribe[None](_event)
+      @asio_event_unsubscribe(_event)
       _event = AsioEvent.none()
     end
 
-  be _event_notify(event: AsioEventID, flags: U32, arg: U64) =>
+  be _event_notify(event: AsioEventID, flags: U32, arg: U32) =>
     """
     When the event fires, advance the timing wheels.
     """
     if AsioEvent.disposable(flags) then
-      @asio_event_destroy[None](event)
+      @asio_event_destroy(event)
     elseif event is _event then
       _advance()
     end
@@ -101,15 +107,15 @@ actor Timers
     if _event.is_null() then
       if nsec != -1 then
         // Create a new event.
-        _event = @asio_event_create[AsioEventID](this, nsec, U32(4), true)
+        _event = @asio_event_create(this, 0, AsioEvent.timer(), nsec, true)
       end
     else
       if nsec != -1 then
         // Update an existing event.
-        @asio_event_update[None](_event, nsec)
+        @asio_event_setnsec(_event, nsec)
       else
         // Unsubscribe an existing event.
-        @asio_event_unsubscribe[None](_event)
+        @asio_event_unsubscribe(_event)
         _event = AsioEvent.none()
       end
     end

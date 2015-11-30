@@ -1,3 +1,7 @@
+use @memcmp[I32](dst: Pointer[U8] box, src: Pointer[U8] box, len: USize)
+use @memset[Pointer[None]](dst: Pointer[None], set: U32, len: USize)
+use @memmove[Pointer[None]](dst: Pointer[None], src: Pointer[None], len: USize)
+
 class val String is (Seq[U8] & Comparable[String box] & Stringable)
   """
   Strings don't specify an encoding.
@@ -407,7 +411,7 @@ class val String is (Seq[U8] & Comparable[String box] & Stringable)
     var i = offset_to_index(offset)
 
     if (i + s.size()) <= _size then
-      @memcmp[I32](_ptr._offset(i), s._ptr, s._size) == 0
+      @memcmp(_ptr._offset(i), s._ptr, s._size) == 0
     else
       false
     end
@@ -550,7 +554,7 @@ class val String is (Seq[U8] & Comparable[String box] & Stringable)
     """
     if value != 0 then
       reserve(_size + 1)
-      @memmove[Pointer[U8]](_ptr.usize() + 1, _ptr.usize(), _size + 1)
+      @memmove(_ptr.usize() + 1, _ptr.usize(), _size + 1)
       _set(0, value)
       _size = _size + 1
     else
@@ -566,7 +570,7 @@ class val String is (Seq[U8] & Comparable[String box] & Stringable)
     """
     if _size > 0 then
       let value = _ptr._apply(0)
-      @memmove[Pointer[U8]](_ptr.usize(), _ptr.usize() + 1, _size)
+      @memmove(_ptr.usize(), _ptr.usize() + 1, _size)
       _size = _size - 1
       value
     else
@@ -624,7 +628,7 @@ class val String is (Seq[U8] & Comparable[String box] & Stringable)
     """
     reserve(_size + that._size)
     var index = offset_to_index(offset).min(_size)
-    @memmove[Pointer[U8]](_ptr.usize() + index + that._size,
+    @memmove(_ptr.usize() + index + that._size,
       _ptr.usize() + index, _size - index)
     that._ptr._copy_to(_ptr._offset(index), that._size)
     _size = _size + that._size
@@ -637,7 +641,7 @@ class val String is (Seq[U8] & Comparable[String box] & Stringable)
     """
     reserve(_size + 1)
     var index = offset_to_index(offset).min(_size)
-    @memmove[Pointer[U8]](_ptr.usize() + index + 1, _ptr.usize() + index,
+    @memmove(_ptr.usize() + index + 1, _ptr.usize() + index,
       _size - index)
     _set(index, value)
     _size = _size + 1
@@ -919,7 +923,7 @@ class val String is (Seq[U8] & Comparable[String box] & Stringable)
     Returns true if the two strings have the same contents.
     """
     if _size == that._size then
-      @memcmp[I32](_ptr, that._ptr, _size) == 0
+      @memcmp(_ptr, that._ptr, _size) == 0
     else
       false
     end
@@ -1140,16 +1144,15 @@ class val String is (Seq[U8] & Comparable[String box] & Stringable)
     match align
     | AlignLeft =>
       _ptr._copy_to(str._ptr, copy_len)
-      @memset[Pointer[U8]](str._ptr.usize() + copy_len, U32(' '),
-        len - copy_len)
+      @memset(str._ptr.usize() + copy_len, U32(' '), len - copy_len)
     | AlignRight =>
-      @memset[Pointer[U8]](str._ptr, U32(' '), len - copy_len)
+      @memset(str._ptr, U32(' '), len - copy_len)
       _ptr._copy_to(str._ptr._offset_tag(len - copy_len), copy_len)
     | AlignCenter =>
       let half = (len - copy_len) / 2
-      @memset[Pointer[U8]](str._ptr, U32(' '), half)
+      @memset(str._ptr, U32(' '), half)
       _ptr._copy_to(str._ptr._offset_tag(half), copy_len)
-      @memset[Pointer[U8]](str._ptr.usize() + copy_len + half, U32(' '),
+      @memset(str._ptr.usize() + copy_len + half, U32(' '),
         len - copy_len - half)
     end
 

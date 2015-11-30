@@ -16,20 +16,24 @@ primitive Path
     """
     Determine if a byte is a path separator.
     """
-    (c == '/') or (Platform.windows() and (c == '\\'))
+    ifdef windows then
+      (c == '/') or (c == '\\')
+    else
+      c == '/'
+    end
 
   fun sep(): String =>
     """
     Return the path separator as a string.
     """
-    if Platform.windows() then "\\" else "/" end
+    ifdef windows then "\\" else "/" end
 
   fun is_abs(path: String): Bool =>
     """
     Return true if the path is an absolute path.
     """
     try
-      if Platform.windows() then
+      ifdef windows then
         is_sep(path(0)) or _drive_letter(path)
       else
         is_sep(path(0))
@@ -115,8 +119,11 @@ primitive Path
               if
                 (s.size() == 0) or
                 (s.compare_sub("../", 3, backtrack) is Equal) or
-                (Platform.windows() and
-                  (s.compare_sub("..\\", 3, backtrack) is Equal))
+                ifdef windows then
+                  s.compare_sub("..\\", 3, backtrack) is Equal
+                else
+                  true
+                end
               then
                 backtrack = -1
               end
@@ -209,7 +216,7 @@ primitive Path
 
     var to_i: ISize = 0
 
-    if Platform.windows() then
+    ifdef windows then
       to_clean = abs(to_clean)
       target_clean = abs(target_clean)
 
@@ -334,7 +341,7 @@ primitive Path
     On Windows, this returns the drive letter or UNC base at the beginning of
     the path, if there is one. Otherwise, this returns an empty string.
     """
-    if Platform.windows() then
+    ifdef windows then
       var offset = ISize(0)
 
       if path.compare_sub("""\\?\""", 4) is Equal then
@@ -395,7 +402,7 @@ primitive Path
     """
     Changes each / in the path to the OS specific separator.
     """
-    if Platform.windows() then
+    ifdef windows then
       var s = path.clone()
       var len = s.size()
       var i = USize(0)
@@ -419,7 +426,7 @@ primitive Path
     """
     Changes each OS specific separator in the path to /.
     """
-    if Platform.windows() then
+    ifdef windows then
       var s = path.clone()
       var len = s.size()
       var i = USize(0)
@@ -456,13 +463,13 @@ primitive Path
     """
     Determine if a byte is a path list separator.
     """
-    if Platform.windows() then c == ';' else c == ':' end
+    ifdef windows then c == ';' else c == ':' end
 
   fun list_sep(): String =>
     """
     Return the path list separator as a string.
     """
-    if Platform.windows() then ";" else ":" end
+    ifdef windows then ";" else ":" end
 
   fun split_list(path: String): Array[String] iso^ =>
     """

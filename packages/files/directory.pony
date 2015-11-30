@@ -352,8 +352,9 @@ class Directory
       ifdef windows or osx then
         path'.set_time(atime, mtime)
       else
-        var tv: (I64, I64, I64, I64) =
-          (atime._1, atime._2 / 1000, mtime._1, mtime._2 / 1000)
+        var tv: (ILong, ILong, ILong, ILong) =
+          (atime._1.ilong(), atime._2.ilong() / 1000,
+            mtime._1.ilong(), mtime._2.ilong() / 1000)
         @futimesat[I32](_fd, target.cstring(), addressof tv) == 0
       end
     else

@@ -20,9 +20,9 @@ typedef void (*free_fn)(void* data);
 
 typedef void (*free_size_fn)(size_t size, void* data);
 
-size_t hash_block(const void* p, size_t len);
+uint64_t hash_block(const void* p, size_t len);
 
-size_t hash_str(const char* str);
+uint64_t hash_str(const char* str);
 
 size_t hash_ptr(const void* p);
 

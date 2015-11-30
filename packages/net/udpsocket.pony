@@ -2,7 +2,7 @@ use "collections"
 
 actor UDPSocket
   var _notify: UDPNotify
-  var _fd: U64
+  var _fd: U32
   var _event: AsioEventID
   var _readable: Bool = false
   var _closed: Bool = false
@@ -19,7 +19,7 @@ actor UDPSocket
     _notify = consume notify
     _event = @os_listen_udp[AsioEventID](this, host.cstring(),
       service.cstring())
-    _fd = @asio_event_data[U64](_event)
+    _fd = @asio_event_fd(_event)
     _packet_size = size
     _notify_listening()
     _start_next_read()
@@ -33,7 +33,7 @@ actor UDPSocket
     _notify = consume notify
     _event = @os_listen_udp4[AsioEventID](this, host.cstring(),
       service.cstring())
-    _fd = @asio_event_data[U64](_event)
+    _fd = @asio_event_fd(_event)
     _packet_size = size
     _notify_listening()
     _start_next_read()
@@ -47,7 +47,7 @@ actor UDPSocket
     _notify = consume notify
     _event = @os_listen_udp6[AsioEventID](this, host.cstring(),
       service.cstring())
-    _fd = @asio_event_data[U64](_event)
+    _fd = @asio_event_fd(_event)
     _packet_size = size
     _notify_listening()
     _start_next_read()
@@ -139,9 +139,13 @@ actor UDPSocket
         _complete_reads(arg)
         _pending_reads()
       end
-    elseif Platform.windows() and AsioEvent.readable(flags) then
-      _readable = false
-      _close()
+    else
+      ifdef windows then
+        if AsioEvent.readable(flags) then
+          _readable = false
+          _close()
+        end
+      end
     end
 
     if AsioEvent.disposable(flags) then
@@ -163,7 +167,7 @@ actor UDPSocket
     we read 4 kb of data, send ourself a resume message and stop reading, to
     avoid starving other actors.
     """
-    if not Platform.windows() then
+    ifdef not windows then
       try
         var sum: USize = 0
 
@@ -199,7 +203,7 @@ actor UDPSocket
     The OS has informed as that len bytes of pending reads have completed.
     This occurs only with IOCP on Windows.
     """
-    if Platform.windows() then
+    ifdef windows then
       var next = _read_buf.space()
 
       match len.usize()
@@ -230,7 +234,7 @@ actor UDPSocket
     Start our next receive.
     This is used only with IOCP on Windows.
     """
-    if Platform.windows() then
+    ifdef windows then
       try
         @os_recvfrom[USize](_event, _read_buf.cstring(), _read_buf.space(),
           _read_from) ?
@@ -266,7 +270,7 @@ actor UDPSocket
     """
     Inform the notifier that we've closed.
     """
-    if Platform.windows() then
+    ifdef windows then
       // On windows, wait until IOCP read operation has completed or been
       // cancelled.
       if not _readable then

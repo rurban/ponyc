@@ -185,14 +185,12 @@ class File
     while not done do
       result.reserve(len)
 
-      let r = if Platform.linux() then
-        @fgets_unlocked[Pointer[U8]](
-          result.cstring().usize() + offset, len - offset, _handle
-          )
+      let r = ifdef linux then
+        @fgets_unlocked[Pointer[U8]](result.cstring().usize() + offset,
+          len - offset, _handle)
       else
-        @fgets[Pointer[U8]](
-          result.cstring().usize() + offset, len - offset, _handle
-          )
+        @fgets[Pointer[U8]](result.cstring().usize() + offset,
+          len - offset, _handle)
       end
 
       result.recalc()
@@ -233,7 +231,7 @@ class File
     if not _handle.is_null() then
       let result = recover Array[U8].undefined(len) end
 
-      let r = if Platform.linux() then
+      let r = ifdef linux then
         @fread_unlocked[USize](result.cstring(), USize(1), len, _handle)
       else
         @fread[USize](result.cstring(), USize(1), len, _handle)
@@ -253,7 +251,7 @@ class File
     if not _handle.is_null() then
       let result = recover String(len) end
 
-      let r = if Platform.linux() then
+      let r = ifdef linux then
         @fread_unlocked[USize](result.cstring(), USize(1), len, _handle)
       else
         @fread[USize](result.cstring(), USize(1), len, _handle)
@@ -288,7 +286,7 @@ class File
     Returns false and closes the file if not all the bytes were written.
     """
     if writeable and (not _handle.is_null()) then
-      let len = if Platform.linux() then
+      let len = ifdef linux then
         @fwrite_unlocked[USize](data.cstring(), USize(1), data.size(), _handle)
       else
         @fwrite[USize](data.cstring(), USize(1), data.size(), _handle)
@@ -318,7 +316,7 @@ class File
     Return the current cursor position in the file.
     """
     if not _handle.is_null() then
-      if Platform.windows() then
+      ifdef windows then
         @_ftelli64[U64](_handle).usize()
       else
         @ftell[USize](_handle)
@@ -369,7 +367,7 @@ class File
     Flush the file.
     """
     if not _handle.is_null() then
-      if Platform.linux() then
+      ifdef linux then
         @fflush_unlocked[I32](_handle)
       else
         @fflush[I32](_handle)
@@ -382,7 +380,7 @@ class File
     Sync the file contents to physical storage.
     """
     if path.caps(FileSync) and not _handle.is_null() then
-      if Platform.windows() then
+      ifdef windows then
         let h = @_get_osfhandle[U64](_fd)
         @FlushFileBuffers[I32](h)
       else
@@ -398,7 +396,7 @@ class File
     if path.caps(FileTruncate) and writeable and (not _handle.is_null()) then
       flush()
       let pos = position()
-      let success = if Platform.windows() then
+      let success = ifdef windows then
         @_chsize_s[I32](_fd, len) == 0
       else
         @ftruncate[I32](_fd, len) == 0
@@ -464,7 +462,7 @@ class File
     Move the cursor position.
     """
     if not _handle.is_null() then
-      if Platform.windows() then
+      ifdef windows then
         @_fseeki64[I32](_handle, offset, base)
       else
         @fseek[I32](_handle, offset, base)
@@ -476,7 +474,7 @@ class File
     Get the file descriptor associated with the file handle.
     """
     if not handle.is_null() then
-      if Platform.windows() then
+      ifdef windows then
         @_fileno[I32](handle)
       else
         @fileno[I32](handle)
