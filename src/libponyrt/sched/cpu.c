@@ -228,10 +228,11 @@ void cpu_core_pause(uint64_t tsc, uint64_t tsc2, bool yield)
 
 uint64_t cpu_tick()
 {
-#if defined(ARMV6)
+#if defined PLATFORM_IS_ARM
 # if defined(__APPLE__)
   return mach_absolute_time();
 # else
+#   if defined ARMV6
   // V6 is the earliest arch that has a standard cyclecount
   uint32_t pmccntr;
   uint32_t pmuseren;
@@ -253,6 +254,7 @@ uint64_t cpu_tick()
       return pmccntr << 6;
     }
   }
+#   endif
 
 #   if defined(PLATFORM_IS_LINUX)
   struct timespec ts;
@@ -264,7 +266,7 @@ uint64_t cpu_tick()
   return (ts.tv_sec * 1000000000) + ts.tv_nsec;
 #   endif
 # endif
-#elif defined(__i386__) || defined(__x86_64__) || defined(__amd64__)
+#elif defined PLATFORM_IS_X86
 # if defined(PLATFORM_IS_CLANG_OR_GCC)
 #   ifdef __clang__
   return __builtin_readcyclecounter();
