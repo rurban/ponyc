@@ -3,7 +3,7 @@
 
 #ifdef ASIO_USE_IOCP
 
-#include "../sched/mpmcq.h"
+#include "../actor/messageq.h"
 #include "../mem/pool.h"
 #include <string.h>
 #include <stdbool.h>
@@ -102,14 +102,14 @@ DECLARE_THREAD_FN(asio_backend_dispatch)
                 handleCount = 2;
               break;
 
-            case EVREQ_STDIN_RESUME:
+            case ASIO_STDIN_RESUME:
               // Console events have been read, we can continue waiting on
               // stdin now
               if(stdin_event != NULL)
                 handleCount = 2;
               break;
 
-            case EVREQ_SET_TIMER:
+            case ASIO_SET_TIMER:
             {
               // Windows timer resolution is 100ns, adjust given time
               int64_t dueTime = -(int64_t)msg->event->nsec / 100;
@@ -117,15 +117,15 @@ DECLARE_THREAD_FN(asio_backend_dispatch)
               liDueTime.LowPart = (DWORD)(dueTime & 0xFFFFFFFF);
               liDueTime.HighPart = (LONG)(dueTime >> 32);
 
-              SetWaitableTimer(req->handle, &liDueTime, 0, timer_fire,
+              SetWaitableTimer(msg->event->timer, &liDueTime, 0, timer_fire,
                 (void*)msg->event, FALSE);
               break;
             }
 
-            case EVREQ_CANCEL_TIMER:
-              CancelWaitableTimer(msg->handle);
-              CloseHandle(msg->handle);
-              msg->handle = NULL;
+            case ASIO_CANCEL_TIMER:
+              CancelWaitableTimer(msg->event->timer);
+              CloseHandle(msg->event->timer);
+              msg->event->timer = NULL;
 
               // Now that we've called cancel no more fire APCs can happen for
               // this timer, so we're safe to send the dispose notify now.

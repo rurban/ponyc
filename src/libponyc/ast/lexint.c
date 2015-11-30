@@ -1,5 +1,6 @@
 #include "lexint.h"
 #include <stdio.h>
+#include <math.h>
 
 #if !defined(PLATFORM_IS_ILP32) && !defined(PLATFORM_IS_WINDOWS)
 #define USE_NATIVE128
@@ -235,8 +236,8 @@ double lexint_double(lexint_t* i)
     t.low = ~t.low;
     lexint_add64(&t, &t, 1);
 
-    return -(((double)t.high * 0x1p64) + (double)t.low);
+    return -(((double)t.high * ldexp(1.0, 64)) + (double)t.low);
   }
 
-  return ((double)i->high * 0x1p64) + (double)i->low;
+  return ((double)i->high * ldexp(1.0, 64)) + (double)i->low;
 }

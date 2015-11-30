@@ -217,14 +217,14 @@ inline int snprintf(char* str, size_t size, const char* format, ...)
 
 inline uint32_t __pony_ffs(uint32_t x)
 {
-  uint32_t i = 0;
+  DWORD i = 0;
   _BitScanForward(&i, x);
   return i + 1;
 }
 
 inline uint64_t __pony_ffsl(uint64_t x)
 {
-  uint32_t i = 0;
+  DWORD i = 0;
   _BitScanForward64(&i, x);
   return i + 1;
 }

@@ -9,6 +9,7 @@
 #include "../type/assemble.h"
 #include "../type/lookup.h"
 #include <string.h>
+#include <stdlib.h>
 #include <assert.h>
 
 static bool is_method_called(ast_t* ast)
