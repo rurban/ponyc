@@ -76,25 +76,25 @@ _Unwind_Reason_Code pony_personality_v0(_Unwind_State state,
         return continue_unwind(exception, context);
 
       // Save r13.
-      unwind_exception->barrier_cache.sp = _Unwind_GetGR(context, 13);
+      exception->barrier_cache.sp = _Unwind_GetGR(context, 13);
 
       // Save barrier.
-      unwind_exception->barrier_cache.bitpattern[0] = 0;
-      unwind_exception->barrier_cache.bitpattern[1] = 0;
-      unwind_exception->barrier_cache.bitpattern[2] =
+      exception->barrier_cache.bitpattern[0] = 0;
+      exception->barrier_cache.bitpattern[1] = 0;
+      exception->barrier_cache.bitpattern[2] =
         (uint32_t)_Unwind_GetLanguageSpecificData(context);
-      unwind_exception->barrier_cache.bitpattern[3] = (uint32_t)landing_pad;
-      unwind_exception->barrier_cache.bitpattern[4] = 0;
+      exception->barrier_cache.bitpattern[3] = (uint32_t)landing_pad;
+      exception->barrier_cache.bitpattern[4] = 0;
       return _URC_HANDLER_FOUND;
     }
 
     case _US_UNWIND_FRAME_STARTING:
     {
 
-      if(unwind_exception->barrier_cache.sp == _Unwind_GetGR(context, 13))
+      if(exception->barrier_cache.sp == _Unwind_GetGR(context, 13))
       {
         // Load barrier.
-        landing_pad = unwind_exception->barrier_cache.bitpattern[3];
+        landing_pad = exception->barrier_cache.bitpattern[3];
 
         // No need to search again, just set the registers.
         set_registers(exception, context);
