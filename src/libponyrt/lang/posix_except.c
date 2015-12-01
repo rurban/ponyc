@@ -27,7 +27,7 @@ static void exception_cleanup(_Unwind_Reason_Code reason,
 void pony_throw()
 {
 #ifdef PLATFORM_IS_ARM
-  memcpy(exception.exception_cleanup, "Pony\0\0\0\0", 8);
+  memcpy(exception.exception_class, "Pony\0\0\0\0", 8);
 #else
   exception.exception_class = 0x506F6E7900000000; // "Pony"
 #endif
