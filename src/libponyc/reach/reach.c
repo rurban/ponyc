@@ -524,14 +524,19 @@ static void reachable_expr(reachable_method_stack_t** s, reachable_types_t* r,
     case TK_IF:
     {
       AST_GET_CHILDREN(ast, cond, then_clause, else_clause);
+      assert(ast_id(cond) == TK_SEQ);
+      cond = ast_child(cond);
 
-      if(ast_id(cond) == TK_TRUE)
+      if(ast_sibling(cond) == NULL)
       {
-        reachable_expr(s, r, then_clause);
-        return;
-      } else if(ast_id(cond) == TK_FALSE) {
-        reachable_expr(s, r, else_clause);
-        return;
+        if(ast_id(cond) == TK_TRUE)
+        {
+          reachable_expr(s, r, then_clause);
+          return;
+        } else if(ast_id(cond) == TK_FALSE) {
+          reachable_expr(s, r, else_clause);
+          return;
+        }
       }
       break;
     }
