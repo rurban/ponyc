@@ -27,7 +27,7 @@ static void exception_cleanup(_Unwind_Reason_Code reason,
 void pony_throw()
 {
 #ifdef PLATFORM_IS_ARM
-  exception.exception_class = "Pony\0\0\0\0";
+  memcpy(exception.exception_cleanup, "Pony\0\0\0\0", 8);
 #else
   exception.exception_class = 0x506F6E7900000000; // "Pony"
 #endif
@@ -75,14 +75,33 @@ _Unwind_Reason_Code pony_personality_v0(_Unwind_State state,
       if(!lsda_scan(context, &landing_pad))
         return continue_unwind(exception, context);
 
+      // Save r13.
+      unwind_exception->barrier_cache.sp = _Unwind_GetGR(context, 13);
+
+      // Save barrier.
+      unwind_exception->barrier_cache.bitpattern[0] = 0;
+      unwind_exception->barrier_cache.bitpattern[1] = 0;
+      unwind_exception->barrier_cache.bitpattern[2] =
+        (uint32_t)_Unwind_GetLanguageSpecificData(context);
+      unwind_exception->barrier_cache.bitpattern[3] = (uint32_t)landing_pad;
+      unwind_exception->barrier_cache.bitpattern[4] = 0;
       return _URC_HANDLER_FOUND;
     }
 
     case _US_UNWIND_FRAME_STARTING:
     {
-      // No need to search again, just set the registers.
-      set_registers(exception, context);
-      return _URC_INSTALL_CONTEXT;
+
+      if(unwind_exception->barrier_cache.sp == _Unwind_GetGR(context, 13))
+      {
+        // Load barrier.
+        landing_pad = unwind_exception->barrier_cache.bitpattern[3];
+
+        // No need to search again, just set the registers.
+        set_registers(exception, context);
+        return _URC_INSTALL_CONTEXT;
+      }
+
+      return continue_unwind(exception, context);
     }
 
     case _US_UNWIND_FRAME_RESUME:
