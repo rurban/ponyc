@@ -1,4 +1,5 @@
 use "lib:pcre2-8"
+use "path:/opt/local/lib" if osx
 
 primitive _Pattern
 
