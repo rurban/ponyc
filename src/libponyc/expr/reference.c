@@ -1042,10 +1042,15 @@ static bool check_fields_defined(ast_t* ast)
         ast_t* id = ast_child(member);
         ast_t* def = ast_get(ast, ast_name(id), &status);
 
-        if((def != member) || (status != SYM_DEFINED))
+        if(def != member)
         {
-          ast_error(def, "field left undefined in constructor");
+          ast_error(def, "field left undefined in constructor (def!=member)");
           result = false;
+        }
+        else if(status != SYM_DEFINED)
+        {
+          //ast_error(def, "field left undefined in constructor (undef)");
+          //result = false;
         }
 
         break;
