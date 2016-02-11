@@ -1000,6 +1000,13 @@ bool literal_is(ast_t* ast, pass_opt_t* options, bool is_or_isnt)
     return is_or_isnt ? r : !r;
   }
 
+  // defer check to run-time
+  // we don't infer types of literal expressions yet, as (1 + 2) is 3
+  // TODO: set at least the type of the TK_LITERAL
+  if (ast_id(left) == TK_SEQ || ast_id(right) == TK_SEQ) {
+    return true;
+  }
+
   ast_error(ast, "Wrong type of operands");
   return false;
 }
