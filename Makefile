@@ -23,7 +23,18 @@ else
   ifeq ($(UNAME_S),Darwin)
     OSTYPE = osx
     lto := yes
-    AR := /usr/bin/ar
+    ifneq (,$(shell which llvm-ar-mp-3.7 2> /dev/null))
+      AR := llvm-ar-mp-3.7
+      AR_FLAGS := rcs
+    else
+      ifneq (,$(shell which llvm-ar-3.7 2> /dev/null))
+        AR := llvm-ar-3.7
+        AR_FLAGS := rcs
+      else
+        AR := /usr/bin/ar
+	AR_FLAGS := -rcs
+      endif
+    endif
   endif
 
   ifeq ($(UNAME_S),FreeBSD)
@@ -71,7 +82,7 @@ LIB_EXT ?= a
 BUILD_FLAGS = -march=$(arch) -Werror -Wconversion \
   -Wno-sign-conversion -Wextra -Wall
 LINKER_FLAGS = -march=$(arch)
-AR_FLAGS = -rcs
+AR_FLAGS ?= rcs
 ALL_CFLAGS = -std=gnu11 -fexceptions \
   -DPONY_VERSION=\"$(tag)\" -DPONY_COMPILER=\"$(CC)\" -DPONY_ARCH=\"$(arch)\"
 ALL_CXXFLAGS = -std=gnu++11 -fno-rtti
@@ -138,6 +149,8 @@ endif
 ifndef LLVM_CONFIG
   ifneq (,$(shell which llvm-config-3.7 2> /dev/null))
     LLVM_CONFIG = llvm-config-3.7
+  else ifneq (,$(shell which llvm-config-mp-3.7 2> /dev/null))
+    LLVM_CONFIG = llvm-config-mp-3.7
   else ifneq (,$(shell which llvm-config-3.6 2> /dev/null))
     LLVM_CONFIG = llvm-config-3.6
   else ifneq (,$(shell which llvm-config36 2> /dev/null))
@@ -158,7 +171,7 @@ $(shell mkdir -p $(PONY_BUILD_DIR))
 lib   := $(PONY_BUILD_DIR)
 bin   := $(PONY_BUILD_DIR)
 tests := $(PONY_BUILD_DIR)
-obj  := $(PONY_BUILD_DIR)/obj
+obj   := $(PONY_BUILD_DIR)/obj
 
 # Libraries. Defined as
 # (1) a name and output directory
