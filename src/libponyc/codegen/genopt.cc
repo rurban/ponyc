@@ -529,7 +529,12 @@ static void optimise(compile_t* c)
   pmb.LoopVectorize = true;
   pmb.SLPVectorize = true;
   pmb.RerollLoops = true;
+  // broken on darwin 3.6 and 3.7.1, GH #449
+#if defined(PLATFORM_IS_MACOSX) && (PONY_LLVM < 308)
+  pmb.LoadCombine = false;
+#else
   pmb.LoadCombine = true;
+#endif
 
   pmb.addExtension(PassManagerBuilder::EP_LoopOptimizerEnd,
     addHeapToStackPass);
