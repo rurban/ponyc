@@ -992,19 +992,24 @@ bool target_is_posix(char* t)
 bool target_is_x86(char* t)
 {
   Triple triple = Triple(t);
-
+#if PONY_LLVM >= 400
+  return "x86" == Triple::getArchTypePrefix(triple.getArch());
+#else
   const char* arch = Triple::getArchTypePrefix(triple.getArch());
-
   return !strcmp("x86", arch);
+#endif
 }
 
 bool target_is_arm(char* t)
 {
   Triple triple = Triple(t);
 
+#if PONY_LLVM >= 400
+  return "arm" == Triple::getArchTypePrefix(triple.getArch());
+#else
   const char* arch = Triple::getArchTypePrefix(triple.getArch());
-
   return !strcmp("arm", arch);
+#endif
 }
 
 bool target_is_lp64(char* t)

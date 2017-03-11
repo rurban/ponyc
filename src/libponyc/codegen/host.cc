@@ -10,6 +10,8 @@
 #  pragma warning(disable:4146)
 #endif
 
+#define LLVM_DISABLE_ABI_BREAKING_CHECKS_ENFORCING 0
+
 #include <llvm/IR/Constants.h>
 #include <llvm/IR/Function.h>
 #include <llvm/IR/Intrinsics.h>

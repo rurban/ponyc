@@ -28,8 +28,8 @@ endif
 
 ifndef lto
   ifeq ($(UNAME_S),Darwin)
-  	# turn lto on for OSX if user hasn't specified a value
-   	lto := yes
+	# turn lto on for OSX if user hasn't specified a value
+	lto := yes
    endif
 endif
 
@@ -236,9 +236,10 @@ endif
 ifeq ($(llvm_version),3.7.1)
 else ifeq ($(llvm_version),3.8.1)
 else ifeq ($(llvm_version),3.9.1)
+else ifeq ($(llvm_version),4.0.0)
 else
   $(warning WARNING: Unsupported LLVM version: $(llvm_version))
-  $(warning Please use LLVM 3.7.1, 3.8.1, or 3.9.1)
+  $(warning Please use LLVM 3.7.1, 3.8.1, 3.9.1 or 4.0.0)
 endif
 
 compiler_version := "$(shell $(CC) --version | sed -n 1p)"
