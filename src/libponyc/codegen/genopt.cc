@@ -992,6 +992,7 @@ bool target_is_posix(char* t)
 bool target_is_x86(char* t)
 {
   Triple triple = Triple(t);
+
 #if PONY_LLVM >= 400
   return "x86" == Triple::getArchTypePrefix(triple.getArch());
 #else
