@@ -119,7 +119,7 @@ LLVMMetadataRef LLVMDIBuilderCreateMethod(LLVMDIBuilderRef d,
 #if PONY_LLVM >= 400
   DISubprogram* di_method = pd->createMethod(unwrap<DIScope>(scope),
     name, linkage, unwrap<DIFile>(file), line, unwrap<DISubroutineType>(type),
-    false, true, 0, 0, 0, nullptr, DINode::FlagZero, optimized);
+    false, true, 0, 0, 0, nullptr, DINode::FlagZero, optimized ? true : false);
 
   f->setSubprogram(di_method);
   return wrap(di_method);
@@ -265,7 +265,8 @@ LLVMMetadataRef LLVMDIBuilderCreateStructType(LLVMDIBuilderRef d,
     elem_types ? DINodeArray(unwrap<MDTuple>(elem_types)) : nullptr));
 #else
   return wrap(pd->createStructType(unwrap<DIScope>(scope), name,
-    unwrap<DIFile>(file), line, size_bits, align_bits, 0, nullptr,
+    unwrap<DIFile>(file), line, size_bits, align_bits,
+    0, nullptr,
     elem_types ? DINodeArray(unwrap<MDTuple>(elem_types)) : nullptr));
 #endif
 }
