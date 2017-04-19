@@ -64,9 +64,12 @@ static LLVMValueRef make_unbox_function(compile_t* c, reach_type_t* t,
   LLVMValueRef primitive_ptr = LLVMBuildStructGEP(c->builder, this_ptr, 1, "");
   LLVMValueRef primitive = LLVMBuildLoad(c->builder, primitive_ptr, "");
 
+#if PONY_LLVM >= 400
+#else
   LLVMValueRef metadata = tbaa_metadata_for_box_type(c, box_name);
   const char id[] = "tbaa";
   LLVMSetMetadata(primitive, LLVMGetMDKindID(id, sizeof(id) - 1), metadata);
+#endif
 
   LLVMValueRef* args = (LLVMValueRef*)ponyint_pool_alloc_size(buf_size);
 

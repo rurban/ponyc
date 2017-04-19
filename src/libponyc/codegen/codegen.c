@@ -847,7 +847,13 @@ static bool init_module(compile_t* c, ast_t* program, pass_opt_t* opt)
   c->frame = NULL;
 
   c->reach = reach_new();
+  
+#if PONY_LLVM >= 400
+  c->tbaa_descriptors = tbaa_descriptors_new();
+  c->tbaa_access_tags = tbaa_access_tags_new();
+#else
   c->tbaa_mds = tbaa_metadatas_new();
+#endif
 
   // This gets a real value once the instance of None has been generated.
   c->none_instance = NULL;
@@ -1060,7 +1066,12 @@ void codegen_cleanup(compile_t* c)
   LLVMDisposeModule(c->module);
   LLVMContextDispose(c->context);
   LLVMDisposeTargetMachine(c->machine);
+#if PONY_LLVM >= 400
+  tbaa_descriptors_free(c->tbaa_descriptors);
+  tbaa_access_tags_free(c->tbaa_access_tags);
+#else
   tbaa_metadatas_free(c->tbaa_mds);
+#endif
   genned_strings_destroy(&c->strings);
   reach_free(c->reach);
 }

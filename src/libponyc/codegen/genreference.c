@@ -98,10 +98,12 @@ LLVMValueRef gen_fieldload(compile_t* c, ast_t* ast)
   pony_assert(ast_id(l_type) == TK_NOMINAL);
 
   field = LLVMBuildLoad(c->builder, field, "");
+#if PONY_LLVM >= 400
+#else
   LLVMValueRef metadata = tbaa_metadata_for_type(c, l_type);
   const char id[] = "tbaa";
   LLVMSetMetadata(field, LLVMGetMDKindID(id, sizeof(id) - 1), metadata);
-
+#endif
   return field;
 }
 

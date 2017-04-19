@@ -208,9 +208,12 @@ static void pointer_apply(compile_t* c, void* data, token_id cap)
   token_id tmp_cap = ast_id(tcap);
   ast_setid(tcap, cap);
 
+#if PONY_LLVM >= 400
+#else
   LLVMValueRef metadata = tbaa_metadata_for_type(c, t->ast);
   const char id[] = "tbaa";
   LLVMSetMetadata(result, LLVMGetMDKindID(id, sizeof(id) - 1), metadata);
+#endif
 
   ast_setid(tcap, tmp_cap);
 
@@ -239,10 +242,13 @@ static void pointer_update(compile_t* c, reach_type_t* t, reach_type_t* t_elem)
   LLVMValueRef value = LLVMGetParam(m->func, 2);
   LLVMValueRef store = LLVMBuildStore(c->builder, value, loc);
 
+#if PONY_LLVM >= 400
+#else
   LLVMValueRef metadata = tbaa_metadata_for_type(c, t->ast);
   const char id[] = "tbaa";
   LLVMSetMetadata(result, LLVMGetMDKindID(id, sizeof(id) - 1), metadata);
   LLVMSetMetadata(store, LLVMGetMDKindID(id, sizeof(id) - 1), metadata);
+#endif
 
   LLVMBuildRet(c->builder, result);
   codegen_finishfun(c);
@@ -340,9 +346,12 @@ static void pointer_delete(compile_t* c, reach_type_t* t, reach_type_t* t_elem)
     LLVMPointerType(t_elem->use_type, 0), "");
   LLVMValueRef result = LLVMBuildLoad(c->builder, elem_ptr, "");
 
+#if PONY_LLVM >= 400
+#else
   LLVMValueRef metadata = tbaa_metadata_for_type(c, t->ast);
   const char id[] = "tbaa";
   LLVMSetMetadata(result, LLVMGetMDKindID(id, sizeof(id) - 1), metadata);
+#endif
 
   LLVMValueRef src = LLVMBuildInBoundsGEP(c->builder, elem_ptr, &n, 1, "");
   src = LLVMBuildBitCast(c->builder, src, t->use_type, "");

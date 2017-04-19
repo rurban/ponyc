@@ -71,12 +71,6 @@ def configure(ctx):
 
     if os_is('win32'):
         import os
-        ctx.env.PONYC_EXTRA_LIBS = [
-            'kernel32', 'user32', 'gdi32', 'winspool', 'comdlg32',
-            'advapi32', 'shell32', 'ole32', 'oleaut32', 'uuid',
-            'odbc32', 'odbccp32', 'vcruntime', 'ucrt', 'Ws2_32',
-            'dbghelp', 'Shlwapi'
-        ]
 
         base_env = ctx.env
         base_env.MSVC_VERSIONS = [ 'msvc ' + v + '.0' for v in MSVC_VERSIONS ]
@@ -110,23 +104,32 @@ def configure(ctx):
                 'LLVM_VERSION="' + llvm_version + '"'
             ])
 
+            # Debug configuration
             bldName = 'debug-llvm-' + llvm_version
             ctx.setenv(bldName, env = bld_env)
             ctx.env.append_value('DEFINES', [
                 'DEBUG',
-                'PONY_BUILD_CONFIG="debug"'
+                'PONY_BUILD_CONFIG="debug"',
+                '_SCL_SECURE_NO_WARNINGS'
             ])
             msvcDebugFlags = [
                 '/EHsc', '/MP', '/GS', '/W3', '/Zc:wchar_t', '/Zi',
                 '/Gm-', '/Od', '/Zc:inline', '/fp:precise', '/WX',
-                '/Zc:forScope', '/Gd', '/MD', '/FS', '/DEBUG'
+                '/Zc:forScope', '/Gd', '/MDd', '/FS', '/DEBUG'
             ]
             ctx.env.append_value('CFLAGS', msvcDebugFlags)
             ctx.env.append_value('CXXFLAGS', msvcDebugFlags)
             ctx.env.append_value('LINKFLAGS', [
                 '/NXCOMPAT', '/SUBSYSTEM:CONSOLE', '/DEBUG'
             ])
+            ctx.env.PONYC_EXTRA_LIBS = [
+                'kernel32', 'user32', 'gdi32', 'winspool', 'comdlg32',
+                'advapi32', 'shell32', 'ole32', 'oleaut32', 'uuid',
+                'odbc32', 'odbccp32', 'vcruntimed', 'ucrtd', 'Ws2_32',
+                'dbghelp', 'Shlwapi'
+            ]            
 
+            # Release configuration
             bldName = 'release-llvm-' + llvm_version
             ctx.setenv(bldName, env = bld_env)
             ctx.env.append_value('DEFINES', [
@@ -143,6 +146,12 @@ def configure(ctx):
             ctx.env.append_value('LINKFLAGS', [
                 '/NXCOMPAT', '/SUBSYSTEM:CONSOLE'
             ])
+            ctx.env.PONYC_EXTRA_LIBS = [
+                'kernel32', 'user32', 'gdi32', 'winspool', 'comdlg32',
+                'advapi32', 'shell32', 'ole32', 'oleaut32', 'uuid',
+                'odbc32', 'odbccp32', 'vcruntime', 'ucrt', 'Ws2_32',
+                'dbghelp', 'Shlwapi'
+            ]            
 
 
 # specifies build targets

@@ -358,10 +358,13 @@ static LLVMValueRef assign_field(compile_t* c, LLVMValueRef l_value,
   // Store to the field.
   LLVMValueRef store = LLVMBuildStore(c->builder, cast_value, l_value);
 
+#if PONY_LLVM >= 400
+#else
   LLVMValueRef metadata = tbaa_metadata_for_type(c, p_type);
   const char id[] = "tbaa";
   LLVMSetMetadata(result, LLVMGetMDKindID(id, sizeof(id) - 1), metadata);
   LLVMSetMetadata(store, LLVMGetMDKindID(id, sizeof(id) - 1), metadata);
+#endif
 
   return result;
 }

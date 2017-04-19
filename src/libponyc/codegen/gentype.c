@@ -18,6 +18,71 @@
 #include <stdlib.h>
 #include <string.h>
 
+#if PONY_LLVM >= 400
+
+static size_t tbaa_descriptor_hash(tbaa_descriptor_t* a)
+{
+  return ponyint_hash_ptr(a->name);
+}
+
+static bool tbaa_descriptor_cmp(tbaa_descriptor_t* a, tbaa_descriptor_t* b)
+{
+  return a->name == b->name;
+}
+
+DEFINE_HASHMAP(tbaa_descriptors, tbaa_descriptors_t, tbaa_descriptor_t,
+  tbaa_descriptor_hash, tbaa_descriptor_cmp, ponyint_pool_alloc_size,
+  ponyint_pool_free_size, NULL);
+
+tbaa_descriptors_t* tbaa_descriptors_new()
+{
+  tbaa_descriptors_t* map = POOL_ALLOC(tbaa_descriptors_t);
+  tbaa_descriptors_init(map, 64);
+  return map;
+}
+
+void tbaa_descriptors_free(tbaa_descriptors_t* map)
+{
+  tbaa_descriptors_destroy(map);
+  POOL_FREE(tbaa_descriptors_t, map);
+}
+
+static size_t tbaa_access_tag_hash(tbaa_access_tag_t* a)
+{
+  return ponyint_hash_ptr(a->base_name) ^ ponyint_hash_ptr(a->field_name);
+}
+
+static bool tbaa_access_tag_cmp(tbaa_access_tag_t* a, tbaa_access_tag_t* b)
+{
+  return a->base_name == b->base_name && a->field_name == b->field_name;
+}
+
+DEFINE_HASHMAP(tbaa_access_tags, tbaa_access_tags_t, tbaa_access_tag_t,
+  tbaa_access_tag_hash, tbaa_access_tag_cmp, ponyint_pool_alloc_size,
+  ponyint_pool_free_size, NULL);
+
+tbaa_access_tags_t* tbaa_access_tags_new()
+{
+  tbaa_access_tags_t* map = POOL_ALLOC(tbaa_access_tags_t);
+  tbaa_access_tags_init(map, 64);
+  return map;
+}
+
+void tbaa_access_tags_free(tbaa_access_tags_t* map)
+{
+  tbaa_access_tags_destroy(map);
+  POOL_FREE(tbaa_access_tags_t, map);
+}
+
+static LLVMValueRef make_tbaa_root(LLVMContextRef ctx)
+{
+  const char str[] = "Pony TBAA";
+  LLVMValueRef mdstr = LLVMMDStringInContext(ctx, str, sizeof(str) - 1);
+  return LLVMMDNodeInContext(ctx, &mdstr, 1);
+}
+
+#else
+
 static size_t tbaa_metadata_hash(tbaa_metadata_t* a)
 {
   return ponyint_hash_ptr(a->name);
@@ -136,6 +201,8 @@ static LLVMValueRef make_tbaa_descptr(LLVMContextRef ctx, LLVMValueRef root)
   params[1] = root;
   return LLVMMDNodeInContext(ctx, params, 2);
 }
+
+#endif
 
 static bool make_opaque_struct(compile_t* c, reach_type_t* t)
 {
@@ -729,8 +796,6 @@ bool gentypes(compile_t* c)
   size_t i;
 
   c->tbaa_root = make_tbaa_root(c->context);
-  c->tbaa_descriptor = make_tbaa_descriptor(c->context, c->tbaa_root);
-  c->tbaa_descptr = make_tbaa_descptr(c->context, c->tbaa_root);
 
   genprim_builtins(c);
 

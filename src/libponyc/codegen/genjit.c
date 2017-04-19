@@ -26,7 +26,8 @@ bool gen_jit_and_run(compile_t* c, int* exit_code, jit_symbol_t* symbols,
   if(!genopt(c, false))
     return false;
 
-  if(LLVMVerifyModule(c->module, LLVMReturnStatusAction, NULL) != 0)
+  char *messages = NULL;
+  if(LLVMVerifyModule(c->module, LLVMReturnStatusAction, &messages) != 0)
     return false;
 
   LLVMExecutionEngineRef engine = NULL;

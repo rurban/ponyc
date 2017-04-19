@@ -67,7 +67,12 @@ DECLARE_HASHMAP(genned_strings, genned_strings_t, genned_string_t);
 typedef struct compile_local_t compile_local_t;
 DECLARE_HASHMAP(compile_locals, compile_locals_t, compile_local_t);
 
+#if PONY_LLVM >= 400
+typedef struct tbaa_descriptors_t tbaa_descriptors_t;
+typedef struct tbaa_access_tags_t tbaa_access_tags_t;
+#else
 typedef struct tbaa_metadatas_t tbaa_metadatas_t;
+#endif
 
 typedef struct compile_frame_t
 {
@@ -92,7 +97,14 @@ typedef struct compile_t
 {
   pass_opt_t* opt;
   reach_t* reach;
+
+#if PONY_LLVM >= 400
+  tbaa_descriptors_t* tbaa_descriptors;
+  tbaa_access_tags_t* tbaa_access_tags;
+#else
   tbaa_metadatas_t* tbaa_mds;
+#endif
+
   genned_strings_t strings;
   const char* filename;
 
@@ -173,8 +185,10 @@ typedef struct compile_t
   LLVMDIBuilderRef di;
   LLVMMetadataRef di_unit;
   LLVMValueRef tbaa_root;
+#if LLVM_PONY < 400
   LLVMValueRef tbaa_descriptor;
   LLVMValueRef tbaa_descptr;
+#endif  
   LLVMValueRef none_instance;
   LLVMValueRef primitives_init;
   LLVMValueRef primitives_final;
