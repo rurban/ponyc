@@ -123,7 +123,7 @@ def configure(ctx):
             ctx.env.append_value('CFLAGS', msvcDebugFlags)
             ctx.env.append_value('CXXFLAGS', msvcDebugFlags)
             ctx.env.append_value('LINKFLAGS', [
-                '/NXCOMPAT', '/SUBSYSTEM:CONSOLE', '/DEBUG'
+                '/NXCOMPAT', '/SUBSYSTEM:CONSOLE', '/DEBUG', '/ignore:4099'
             ])
             ctx.env.PONYC_EXTRA_LIBS = [
                 'kernel32', 'user32', 'gdi32', 'winspool', 'comdlg32',
