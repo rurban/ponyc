@@ -29,8 +29,8 @@ out = 'build'
 
 # various configuration parameters
 CONFIGS = [
-    'debug',
-    'release'
+    'release',
+    'debug'
 ]
 
 MSVC_VERSIONS = [ '15', '14' ]
@@ -43,7 +43,7 @@ LLVM_VERSIONS = [
     '3.7.1'
 ]
 
-WINDOWS_LIBS_TAG = "v1.3.0"
+WINDOWS_LIBS_TAG = "v1.4.0"
 LIBRESSL_VERSION = "2.5.0"
 PCRE2_VERSION = "10.21"
 
@@ -88,25 +88,28 @@ def configure(ctx):
 
         for llvm_version in LLVM_VERSIONS:
             bld_env = base_env.derive()
-            bld_env.PONYLIBS_NAME = 'PonyWindowsLibs' + \
-                '-LLVM-' + llvm_version + \
-                '-LibreSSL-' + LIBRESSL_VERSION + \
-                '-PCRE2-' + PCRE2_VERSION + '-' + \
-                WINDOWS_LIBS_TAG
-            bld_env.PONYLIBS_DIR = bld_env.PONYLIBS_NAME
+            bld_env.PONYLIBS_DIR = 'ThirdParty'
             bld_env.LIBRESSL_DIR = os.path.join(bld_env.PONYLIBS_DIR, \
                 'lib', 'libressl-' + LIBRESSL_VERSION)
             bld_env.PCRE2_DIR = os.path.join(bld_env.PONYLIBS_DIR, \
                 'lib', 'pcre2-' + PCRE2_VERSION)
-            bld_env.LLVM_DIR = os.path.join(bld_env.PONYLIBS_DIR, \
-                'lib', 'LLVM-' + llvm_version)
             bld_env.append_value('DEFINES', [
                 'LLVM_VERSION="' + llvm_version + '"'
             ])
 
+            libs_name = 'PonyWinLibs' + \
+                '-LLVM-' + llvm_version + \
+                '-LibreSSL-' + LIBRESSL_VERSION + \
+                '-PCRE2-' + PCRE2_VERSION + '-' + \
+                WINDOWS_LIBS_TAG
+
             # Debug configuration
             bldName = 'debug-llvm-' + llvm_version
             ctx.setenv(bldName, env = bld_env)
+            ctx.env.PONYLIBS_NAME = libs_name + '-Debug'
+            ctx.env.LLVM_DIR = os.path.join(ctx.env.PONYLIBS_DIR, \
+                'lib', 'LLVM-' + llvm_version + '-Debug')
+
             ctx.env.append_value('DEFINES', [
                 'DEBUG',
                 'PONY_BUILD_CONFIG="debug"',
@@ -127,11 +130,15 @@ def configure(ctx):
                 'advapi32', 'shell32', 'ole32', 'oleaut32', 'uuid',
                 'odbc32', 'odbccp32', 'vcruntimed', 'ucrtd', 'Ws2_32',
                 'dbghelp', 'Shlwapi'
-            ]            
+            ]
 
             # Release configuration
             bldName = 'release-llvm-' + llvm_version
             ctx.setenv(bldName, env = bld_env)
+            ctx.env.PONYLIBS_NAME = libs_name + '-Release'
+            ctx.env.LLVM_DIR = os.path.join(ctx.env.PONYLIBS_DIR, \
+                'lib', 'LLVM-' + llvm_version + '-Release')
+
             ctx.env.append_value('DEFINES', [
                 'NDEBUG',
                 'PONY_BUILD_CONFIG="release"'
@@ -188,7 +195,7 @@ def build(ctx):
                 and os.path.exists(pcre2Dir) \
                 and os.path.exists(llvmDir)):
                 libsZip = libsName + '.zip'
-                libsFname = os.path.join(buildDir, libsZip)
+                libsFname = os.path.join(buildDir, '..', libsZip)
                 if not os.path.isfile(libsFname):
                     libsUrl = 'https://github.com/kulibali/ponyc-windows-libs/releases/download/' \
                         + WINDOWS_LIBS_TAG + '/' + libsZip
@@ -214,7 +221,10 @@ def build(ctx):
                     zf.extractall(libsDir)
 
                 import shutil
-                shutil.copy(os.path.join(pcre2Dir, 'pcre2-8.lib'), buildDir)
+                if (ctx.options.config == 'debug'):
+                    shutil.copy(os.path.join(pcre2Dir, 'pcre2-8d.lib'), buildDir)
+                else:
+                    shutil.copy(os.path.join(pcre2Dir, 'pcre2-8.lib'), buildDir)
                 shutil.copy(os.path.join(libresslDir, 'lib', 'crypto.lib'), buildDir)
                 shutil.copy(os.path.join(libresslDir, 'lib', 'ssl.lib'), buildDir)
                 shutil.copy(os.path.join(libresslDir, 'lib', 'tls.lib'), buildDir)
