@@ -332,6 +332,11 @@ def build(ctx):
         lib       = ctx.env.PONYC_EXTRA_LIBS
     )
 
+
+# this command runs the test suites
+def test(ctx):
+    import os
+
     # stdlib tests
     stdlibTarget = 'stdlib'
     if os_is('win32'):
@@ -344,39 +349,38 @@ def build(ctx):
         source   = ctx.bldnode.ant_glob('ponyc*') + ctx.path.ant_glob('packages/**/*.pony'),
     )
 
+    def run_tests(ctx):
+        buildDir = ctx.bldnode.abspath()
 
-# this command runs the test suites
-def test(ctx):
-    import os
-    buildDir = ctx.bldnode.abspath()
+        total = 0
+        passed = 0
 
-    total = 0
-    passed = 0
+        total = total + 1
+        testc = os.path.join(buildDir, 'testc')
+        returncode = subprocess.call([ testc ])
+        if returncode == 0:
+            passed = passed + 1
 
-    total = total + 1
-    testc = os.path.join(buildDir, 'testc')
-    returncode = subprocess.call([ testc ])
-    if returncode == 0:
-        passed = passed + 1
+        total = total + 1
+        testrt = os.path.join(buildDir, 'testrt')
+        print(testrt)
+        returncode = subprocess.call([ testrt ])
+        if returncode == 0:
+            passed = passed + 1
 
-    total = total + 1
-    testrt = os.path.join(buildDir, 'testrt')
-    print(testrt)
-    returncode = subprocess.call([ testrt ])
-    if returncode == 0:
-        passed = passed + 1
+        total = total + 1
+        stdlib = os.path.join(buildDir, 'stdlib')
+        print(stdlib)
+        returncode = subprocess.call([ stdlib, '--sequential' ])
+        if returncode == 0:
+            passed = passed + 1
 
-    total = total + 1
-    stdlib = os.path.join(buildDir, 'stdlib')
-    print(stdlib)
-    returncode = subprocess.call([ stdlib, '--sequential' ])
-    if returncode == 0:
-        passed = passed + 1
+        print('')
+        print('{0} test suites; {1} passed; {2} failed'.format(total, passed, total - passed))
+        if passed < total:
+            sys.exit(1)
 
-    print('')
-    print('{0} test suites; {1} passed; {2} failed'.format(total, passed, total - passed))
-    if passed < total:
-        sys.exit(1)
+    ctx.add_post_fun(run_tests)
 
 
 # subclass the build context for the test command,
