@@ -16,6 +16,7 @@ typedef struct reach_method_name_t reach_method_name_t;
 typedef struct reach_field_t reach_field_t;
 typedef struct reach_param_t reach_param_t;
 typedef struct reach_type_t reach_type_t;
+typedef struct tbaa_descriptor_t tbaa_descriptor_t;
 
 DECLARE_STACK(reach_method_stack, reach_method_stack_t, reach_method_t);
 DECLARE_HASHMAP(reach_methods, reach_methods_t, reach_method_t);
@@ -122,6 +123,8 @@ struct reach_type_t
 
   uint32_t field_count;
   reach_field_t* fields;
+
+  tbaa_descriptor_t* tbaa_desc;
 };
 
 typedef struct

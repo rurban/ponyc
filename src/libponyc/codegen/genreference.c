@@ -98,7 +98,10 @@ LLVMValueRef gen_fieldload(compile_t* c, ast_t* ast)
   pony_assert(ast_id(l_type) == TK_NOMINAL);
 
   field = LLVMBuildLoad(c->builder, field, "");
+
 #if PONY_LLVM >= 400
+  ast_t* r_type = ast_get((ast_t*)ast_data(l_type), ast_name(right), NULL);
+  tbaa_tag_struct_access_ast(c, l_type, r_type, field);
 #else
   LLVMValueRef metadata = tbaa_metadata_for_type(c, l_type);
   const char id[] = "tbaa";

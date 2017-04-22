@@ -359,6 +359,7 @@ static LLVMValueRef assign_field(compile_t* c, LLVMValueRef l_value,
   LLVMValueRef store = LLVMBuildStore(c->builder, cast_value, l_value);
 
 #if PONY_LLVM >= 400
+  tbaa_tag_struct_access_ast(c, p_type, r_type, store);
 #else
   LLVMValueRef metadata = tbaa_metadata_for_type(c, p_type);
   const char id[] = "tbaa";

@@ -262,8 +262,8 @@ static LLVMValueRef make_field_list(compile_t* c, reach_type_t* t)
   for(uint32_t i = 0; i < count; i++)
   {
     LLVMValueRef fdesc[2];
-    fdesc[0] = LLVMConstInt(c->i32,
-      LLVMOffsetOfElement(c->target_data, t->primitive, i), false);
+    fdesc[0] = LLVMConstInt(c->i32, LLVMOffsetOfElement(c->target_data, 
+      t->primitive, i), false);
 
     if(t->fields[i].type->desc != NULL)
     {
@@ -422,7 +422,6 @@ void gendesc_init(compile_t* c, reach_type_t* t)
   LLVMValueRef trait_list = make_trait_list(c, t, &trait_count);
 
   LLVMValueRef args[DESC_LENGTH];
-
   args[DESC_ID] = LLVMConstInt(c->i32, t->type_id, false);
   args[DESC_SIZE] = LLVMConstInt(c->i32, t->abi_size, false);
   args[DESC_TRAIT_COUNT] = LLVMConstInt(c->i32, trait_count, false);
