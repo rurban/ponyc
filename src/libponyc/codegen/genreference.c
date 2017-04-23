@@ -53,19 +53,32 @@ LLVMValueRef gen_param(compile_t* c, ast_t* ast)
   return LLVMGetParam(codegen_fun(c), index + 1);
 }
 
+static void get_fieldinfo(ast_t* l_type, ast_t* right, ast_t** def,
+  ast_t** field, uint32_t* index)
+{
+  ast_t* d = (ast_t*)ast_data(l_type);
+  ast_t *f = ast_get(d, ast_name(right), NULL);
+  uint32_t i = (uint32_t)ast_index(f);
+
+  *def = d;
+  *field = f;
+  *index = i;
+}
+
 static LLVMValueRef make_fieldptr(compile_t* c, LLVMValueRef l_value,
   ast_t* l_type, ast_t* right)
 {
   pony_assert(ast_id(l_type) == TK_NOMINAL);
   pony_assert(ast_id(right) == TK_ID);
 
-  ast_t* def = (ast_t*)ast_data(l_type);
-  ast_t* field = ast_get(def, ast_name(right), NULL);
-  int index = (int)ast_index(field);
+  ast_t* def;
+  ast_t* field;
+  uint32_t index;
+  get_fieldinfo(l_type, right, &def, &field, &index);
 
   if(ast_id(def) != TK_STRUCT)
     index++;
-
+  
   if(ast_id(def) == TK_ACTOR)
     index++;
 
@@ -100,8 +113,13 @@ LLVMValueRef gen_fieldload(compile_t* c, ast_t* ast)
   field = LLVMBuildLoad(c->builder, field, "");
 
 #if PONY_LLVM >= 400
-  ast_t* r_type = ast_get((ast_t*)ast_data(l_type), ast_name(right), NULL);
-  tbaa_tag_struct_access_ast(c, l_type, r_type, field);
+  ast_t* f;
+  ast_t* d;
+  uint32_t i;
+  const char* rname = ast_name(right);
+  get_fieldinfo(l_type, right, &d, &f, &i);
+  ast_t* r_type = ast_type(f);
+  tbaa_tag_struct_access_ast(c, l_type, r_type, i, field);
 #else
   LLVMValueRef metadata = tbaa_metadata_for_type(c, l_type);
   const char id[] = "tbaa";

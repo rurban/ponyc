@@ -24,7 +24,8 @@ void tbaa_descriptors_free(tbaa_descriptors_t* tbaa_descriptors);
 typedef struct tbaa_access_tag_t
 {
   const char* base_name;
-  const char* field_name;
+  uint32_t field_index;
+  const char* field_name;  
   LLVMValueRef metadata;
 } tbaa_access_tag_t;
 
@@ -33,10 +34,10 @@ tbaa_access_tags_t* tbaa_access_tags_new();
 void tbaa_access_tags_free(tbaa_access_tags_t* tbaa_access_tags);
 
 void tbaa_tag_struct_access(compile_t* c, reach_type_t* base_type, 
-  reach_type_t* field_type, LLVMValueRef instr);
+  reach_type_t* field_type, uint32_t index, LLVMValueRef instr);
 
 void tbaa_tag_struct_access_ast(compile_t *c, ast_t* base_type,
-  ast_t* field_type, LLVMValueRef instr);
+  ast_t* field_type, uint32_t index, LLVMValueRef instr);
 
 LLVMValueRef tbaa_scalar_access(compile_t* c, reach_type_t* type);
 

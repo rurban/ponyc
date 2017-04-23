@@ -36,6 +36,13 @@ static void type_append(printbuf_t* buf, ast_t* type, bool first)
       return;
     }
 
+    case TK_TYPEPARAMREF: // TODO: temporary for debugging purposes
+    {
+      ast_t* id = ast_child(type);
+      printbuf(buf, "%s", ast_name(id));
+      return;
+    }
+
     case TK_NOMINAL:
     {
       // pkg_Type[_Arg1_Arg2]_cap

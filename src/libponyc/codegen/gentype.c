@@ -49,12 +49,16 @@ void tbaa_descriptors_free(tbaa_descriptors_t* map)
 
 static size_t tbaa_access_tag_hash(tbaa_access_tag_t* a)
 {
-  return ponyint_hash_ptr(a->base_name) ^ ponyint_hash_ptr(a->field_name);
+  return ponyint_hash_ptr(a->base_name) ^ 
+    ponyint_hash_int32(a->field_index) ^
+    ponyint_hash_ptr(a->field_name);
 }
 
 static bool tbaa_access_tag_cmp(tbaa_access_tag_t* a, tbaa_access_tag_t* b)
 {
-  return a->base_name == b->base_name && a->field_name == b->field_name;
+  return a->base_name == b->base_name && 
+    a->field_index == b->field_index &&
+    a->field_name == b->field_name;
 }
 
 DEFINE_HASHMAP(tbaa_access_tags, tbaa_access_tags_t, tbaa_access_tag_t,
@@ -81,7 +85,18 @@ static LLVMValueRef make_tbaa_root(LLVMContextRef ctx)
   return LLVMMDNodeInContext(ctx, &mdstr, 1);
 }
 
-static tbaa_descriptor_t* make_tbaa_descriptor(compile_t *c, reach_type_t *t)
+typedef struct tbaa_field_update_t
+{
+  reach_type_t* base_type;
+  uint32_t arg_index;
+  reach_type_t* field_type;
+  struct tbaa_field_update_t* next;
+} tbaa_field_update_t;
+
+// to handle with mutually-recursive types, we set null operands for the 
+// metadatas at first and then fill them in after
+static tbaa_descriptor_t* alloc_tbaa_descriptor(compile_t *c, reach_type_t *t, 
+  tbaa_field_update_t** updates)
 {
   tbaa_descriptor_t key; key.name = t->name;
   size_t index = HASHMAP_UNKNOWN;
@@ -94,70 +109,104 @@ static tbaa_descriptor_t* make_tbaa_descriptor(compile_t *c, reach_type_t *t)
   tbaa_desc = POOL_ALLOC(tbaa_descriptor_t);
   tbaa_desc->name = key.name;
 
+  // adding to the hash first stops the mutual recursion
+  tbaa_desc->type = t;
+  t->tbaa_desc = tbaa_desc;
+  tbaa_descriptors_putindex(c->tbaa_descriptors, tbaa_desc, index);
+
   LLVMValueRef *tbaa_args = NULL;
-  uint32_t num_tbaa_args = 0;
+  uint32_t num_tbaa_args = t->field_count > 0 ? (1 + t->field_count * 2) : 2;
+  tbaa_args = (LLVMValueRef*)ponyint_pool_alloc_size(sizeof(LLVMValueRef*) 
+    * num_tbaa_args);
 
   if (t->field_count > 0)
   {
     tbaa_desc->field_offsets = (LLVMValueRef*)ponyint_pool_alloc_size(
       t->field_count * sizeof(LLVMValueRef));
 
-    num_tbaa_args = 1 + (t->field_count * 2);
-    tbaa_args = (LLVMValueRef*)ponyint_pool_alloc_size(num_tbaa_args);
+    tbaa_args[0] = LLVMMDStringInContext(c->context, tbaa_desc->name, 
+      (unsigned)strlen(tbaa_desc->name));
+    
+    for (uint32_t i = 0; i < t->field_count; i++)
+    {
+      tbaa_args[1 + i*2] = NULL;
+      LLVMValueRef offset = LLVMConstInt(c->i32, LLVMOffsetOfElement(
+        c->target_data, t->underlying == TK_TUPLETYPE ? t->primitive : 
+          t->structure, i), false);
+      tbaa_desc->field_offsets[i] = offset;
+      tbaa_args[2 + i*2] = offset;
+    }
+
+    tbaa_desc->metadata = LLVMMDNodeInContext(c->context, tbaa_args, 
+      num_tbaa_args);
 
     for (uint32_t i = 0; i < t->field_count; i++)
     {
-      if (t->fields[i].type == NULL)
-      {
-        tbaa_args[1 + i*2] = NULL;
-        tbaa_args[2 + i*2] = NULL;
-        tbaa_desc->field_offsets[i] = NULL;
-      }
-      else
-      {
-        tbaa_descriptor_t* field_desc = make_tbaa_descriptor(c, t->fields[i].type);
-        tbaa_args[1 + i*2] = field_desc->metadata;
+      pony_assert(t->fields[i].type != NULL);
+      tbaa_field_update_t* fu = POOL_ALLOC(tbaa_field_update_t);
+      fu->base_type = t;
+      fu->arg_index = 1 + i*2;
+      fu->field_type = t->fields[i].type;
+      fu->next = *updates;
+      *updates = fu;
 
-        LLVMValueRef offset = LLVMConstInt(c->i32, LLVMOffsetOfElement(c->target_data, 
-          t->underlying == TK_TUPLETYPE ? t->primitive : t->structure, i), false);
-        tbaa_desc->field_offsets[i] = offset;
-        tbaa_args[2 + i*2] = offset;
-      }
+      alloc_tbaa_descriptor(c, t->fields[i].type, updates);
     }
-  }
 
-  if (num_tbaa_args == 0)
-  {
-    num_tbaa_args = 2;
-    tbaa_args = (LLVMValueRef*)ponyint_pool_alloc_size(
-      sizeof(LLVMValueRef) * num_tbaa_args);
-    tbaa_args[1] = c->tbaa_root; // TODO: find supertype?
-
-    fprintf(stderr, "gendesc_init: gen tbaa scalar type %s (%s) underlying %d (%d)\n", 
-      tbaa_desc->name, t->mangle, t->underlying, TK_CLASS);
+    fprintf(stderr, "gendesc_init: gen tbaa struct type %s with %d fields\n", 
+      tbaa_desc->name, t->field_count);
   }
   else
   {
-    fprintf(stderr, "gendesc_init: gen tbaa struct type %s with %d fields underlying %d\n", 
-      tbaa_desc->name, (num_tbaa_args-1)/2, t->underlying);
-  }  
+    tbaa_args[0] = LLVMMDStringInContext(c->context, tbaa_desc->name, 
+      (unsigned)strlen(tbaa_desc->name));
+    tbaa_args[1] = c->tbaa_root; // TODO: find supertype?
+    tbaa_desc->metadata = LLVMMDNodeInContext(c->context, tbaa_args, 
+      num_tbaa_args);
 
-  tbaa_args[0] = LLVMMDStringInContext(c->context, tbaa_desc->name, 
-    (unsigned)strlen(tbaa_desc->name));
-  tbaa_desc->metadata = LLVMMDNodeInContext(c->context, tbaa_args, 
-    num_tbaa_args);
+    fprintf(stderr, "gendesc_init: gen tbaa scalar type %s (%s)\n", 
+      tbaa_desc->name, t->mangle);
+  }
 
-  t->tbaa_desc = tbaa_desc;
-  tbaa_descriptors_putindex(c->tbaa_descriptors, tbaa_desc, index);
-  
+  return tbaa_desc;
+}
+
+extern void LLVMMDNodeReplaceOperand(LLVMValueRef parent, unsigned i, 
+  LLVMValueRef node);
+
+tbaa_descriptor_t* make_tbaa_descriptor(compile_t* c, reach_type_t* t)
+{
+  tbaa_field_update_t* update = NULL;
+  tbaa_descriptor_t *tbaa_desc = alloc_tbaa_descriptor(c, t, &update);
+
+  tbaa_field_update_t *prev;
+  while (update != NULL)
+  {
+    pony_assert(update->base_type != NULL);
+    pony_assert(update->base_type->tbaa_desc != NULL);
+    pony_assert(update->base_type->tbaa_desc->metadata != NULL);
+
+    pony_assert(update->field_type != NULL);
+    pony_assert(update->field_type->tbaa_desc != NULL);
+    pony_assert(update->field_type->tbaa_desc->metadata != NULL);
+
+    LLVMMDNodeReplaceOperand(update->base_type->tbaa_desc->metadata,
+      update->arg_index, update->field_type->tbaa_desc->metadata);
+
+    prev = update;
+    update = update->next;
+    POOL_FREE(tbaa_descriptor_t, prev);
+  }
+
   return tbaa_desc;
 }
 
 void tbaa_tag_struct_access(compile_t* c, reach_type_t* base_type,
-  reach_type_t* field_type, LLVMValueRef instr)
+  reach_type_t* field_type, uint32_t field_index, LLVMValueRef instr)
 {
   tbaa_access_tag_t key;
   key.base_name = base_type->name;
+  key.field_index = field_index;
   key.field_name = field_type->name;
   size_t index = HASHMAP_UNKNOWN;
   tbaa_access_tag_t* tag = tbaa_access_tags_get(c->tbaa_access_tags, 
@@ -165,33 +214,30 @@ void tbaa_tag_struct_access(compile_t* c, reach_type_t* base_type,
 
   if (tag == NULL)
   {
+    if (base_type->tbaa_desc == NULL)
+      base_type->tbaa_desc = make_tbaa_descriptor(c, base_type);
+    if (field_type->tbaa_desc == NULL)
+      field_type->tbaa_desc = make_tbaa_descriptor(c, field_type);
+
     pony_assert(base_type->tbaa_desc != NULL);
     pony_assert(field_type->tbaa_desc != NULL);
 
     pony_assert(base_type->tbaa_desc->metadata != NULL);
     pony_assert(field_type->tbaa_desc->metadata != NULL);
 
+    pony_assert(field_index < base_type->field_count);
+
     LLVMValueRef args[3];
     args[0] = base_type->tbaa_desc->metadata;
     args[1] = field_type->tbaa_desc->metadata;
-    args[2] = NULL;
-
-    for (uint32_t i = 0; i < base_type->field_count; i++)
-    {
-      if (strcmp(base_type->fields[i].type->name, field_type->name) == 0)
-      {
-        args[2] = base_type->tbaa_desc->field_offsets[i];
-        break;
-      }
-    }
-    pony_assert(args[2] != NULL);
+    args[2] = base_type->tbaa_desc->field_offsets[field_index];
 
     tag = POOL_ALLOC(tbaa_access_tag_t);
     tag->base_name = key.base_name;
     tag->field_name = key.field_name;
     tag->metadata = LLVMMDNodeInContext(c->context, args, 3);
 
-    tbaa_access_tags_putindex(c->tbaa_access_tags, tag, index);
+    tbaa_access_tags_put(c->tbaa_access_tags, tag);
   }
 
   const char id[] = "tbaa";
@@ -199,23 +245,19 @@ void tbaa_tag_struct_access(compile_t* c, reach_type_t* base_type,
 }
 
 void tbaa_tag_struct_access_ast(compile_t *c, ast_t* base_ast,
-  ast_t* field_ast, LLVMValueRef instr)
+  ast_t* field_ast, uint32_t field_index, LLVMValueRef instr)
 {
-  tbaa_descriptor_t key; key.name = genname_type_and_cap(base_ast);
+  reach_type_t key; key.name = genname_type(base_ast);
   size_t index = HASHMAP_UNKNOWN;
-  tbaa_descriptor_t* base_desc = tbaa_descriptors_get(c->tbaa_descriptors,
-    &key, &index);
-  pony_assert(base_desc != NULL);
-  pony_assert(base_desc->type != NULL);
+  reach_type_t *base_type = reach_types_get(&c->reach->types, &key, &index);
+  pony_assert(base_type != NULL);
 
-  key.name = genname_type_and_cap(field_ast);
+  key.name = genname_type(field_ast);
   index = HASHMAP_UNKNOWN;
-  tbaa_descriptor_t* field_desc = tbaa_descriptors_get(c->tbaa_descriptors,
-    &key, &index);
-  pony_assert(field_desc != NULL);
-  pony_assert(field_desc->type != NULL);
+  reach_type_t *field_type = reach_types_get(&c->reach->types, &key, &index);
+  pony_assert(field_type != NULL);
 
-  tbaa_tag_struct_access(c, base_desc->type, field_desc->type, instr);
+  tbaa_tag_struct_access(c, base_type, field_type, field_index, instr);
 }
 
 #else
@@ -320,7 +362,8 @@ static LLVMValueRef make_tbaa_root(LLVMContextRef ctx)
   return LLVMMDNodeInContext(ctx, &mdstr, 1);
 }
 
-static LLVMValueRef make_tbaa_descriptor(LLVMContextRef ctx, LLVMValueRef root)
+static LLVMValueRef make_tbaa_descriptor(LLVMContextRef ctx, 
+  LLVMValueRef root)
 {
   const char str[] = "Type descriptor";
   LLVMValueRef params[3];
@@ -933,15 +976,6 @@ bool gentypes(compile_t* c)
   size_t i;
 
   c->tbaa_root = make_tbaa_root(c->context);
-
-#if PONY_LLVM >= 400
-  i = HASHMAP_BEGIN;
-
-  while ((t = reach_types_next(&c->reach->types, &i)) != NULL)
-  {
-    make_tbaa_descriptor(c, t);
-  }
-#endif
 
   genprim_builtins(c);
 
