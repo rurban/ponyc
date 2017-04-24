@@ -93,7 +93,7 @@ typedef struct tbaa_field_update_t
   struct tbaa_field_update_t* next;
 } tbaa_field_update_t;
 
-// to handle with mutually-recursive types, we set null operands for the 
+// to handle mutually-recursive types, we set null operands for the 
 // metadatas at first and then fill them in after
 static tbaa_descriptor_t* alloc_tbaa_descriptor(compile_t *c, reach_type_t *t, 
   tbaa_field_update_t** updates)
@@ -209,8 +209,8 @@ void tbaa_tag_struct_access(compile_t* c, reach_type_t* base_type,
   key.field_index = field_index;
   key.field_name = field_type->name;
   size_t index = HASHMAP_UNKNOWN;
-  tbaa_access_tag_t* tag = tbaa_access_tags_get(c->tbaa_access_tags, 
-    &key, &index);
+  tbaa_access_tag_t* tag = tbaa_access_tags_get(c->tbaa_access_tags, &key, 
+    &index);
 
   if (tag == NULL)
   {
@@ -244,17 +244,28 @@ void tbaa_tag_struct_access(compile_t* c, reach_type_t* base_type,
   LLVMSetMetadata(instr, LLVMGetMDKindID(id, sizeof(id) - 1), tag->metadata);
 }
 
-void tbaa_tag_struct_access_ast(compile_t *c, ast_t* base_ast,
-  ast_t* field_ast, uint32_t field_index, LLVMValueRef instr)
+void get_fieldinfo(ast_t* l_type, ast_t* right, ast_t** l_def,
+  ast_t** field, uint32_t* index)
+{
+  ast_t* d = (ast_t*)ast_data(l_type);
+  ast_t *f = ast_get(d, ast_name(right), NULL);
+  uint32_t i = (uint32_t)ast_index(f);
+
+  *def = d;
+  *field = f;
+  *index = i;
+}
+
+void tbaa_tag_struct_access_ast(compile_t *c, ast_t* base_ast, 
+  uint32_t field_index, LLVMValueRef instr)
 {
   reach_type_t key; key.name = genname_type(base_ast);
   size_t index = HASHMAP_UNKNOWN;
-  reach_type_t *base_type = reach_types_get(&c->reach->types, &key, &index);
+  reach_type_t *base_type = reach_types_get(&c->reach->types, &key, &index);  
   pony_assert(base_type != NULL);
-
-  key.name = genname_type(field_ast);
-  index = HASHMAP_UNKNOWN;
-  reach_type_t *field_type = reach_types_get(&c->reach->types, &key, &index);
+  pony_assert(field_index < base_type->field_count);
+  
+  reach_type_t *field_type = base_type->fields[field_index].type;
   pony_assert(field_type != NULL);
 
   tbaa_tag_struct_access(c, base_type, field_type, field_index, instr);

@@ -53,18 +53,6 @@ LLVMValueRef gen_param(compile_t* c, ast_t* ast)
   return LLVMGetParam(codegen_fun(c), index + 1);
 }
 
-static void get_fieldinfo(ast_t* l_type, ast_t* right, ast_t** def,
-  ast_t** field, uint32_t* index)
-{
-  ast_t* d = (ast_t*)ast_data(l_type);
-  ast_t *f = ast_get(d, ast_name(right), NULL);
-  uint32_t i = (uint32_t)ast_index(f);
-
-  *def = d;
-  *field = f;
-  *index = i;
-}
-
 static LLVMValueRef make_fieldptr(compile_t* c, LLVMValueRef l_value,
   ast_t* l_type, ast_t* right)
 {
@@ -118,8 +106,7 @@ LLVMValueRef gen_fieldload(compile_t* c, ast_t* ast)
   uint32_t i;
   const char* rname = ast_name(right);
   get_fieldinfo(l_type, right, &d, &f, &i);
-  ast_t* r_type = ast_type(f);
-  tbaa_tag_struct_access_ast(c, l_type, r_type, i, field);
+  tbaa_tag_struct_access_ast(c, l_type, i, field);
 #else
   LLVMValueRef metadata = tbaa_metadata_for_type(c, l_type);
   const char id[] = "tbaa";
