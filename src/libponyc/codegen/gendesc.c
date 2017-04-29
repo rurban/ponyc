@@ -65,6 +65,7 @@ static LLVMValueRef make_unbox_function(compile_t* c, reach_type_t* t,
   LLVMValueRef primitive = LLVMBuildLoad(c->builder, primitive_ptr, "");
 
 #if PONY_LLVM >= 400
+  tbaa_tag_box_access(c, t, primitive);
 #else
   LLVMValueRef metadata = tbaa_metadata_for_box_type(c, box_name);
   const char id[] = "tbaa";

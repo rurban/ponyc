@@ -39,6 +39,8 @@ void tbaa_tag_struct_access(compile_t* c, reach_type_t* base_type,
 void tbaa_tag_struct_access_ast(compile_t *c, ast_t* base_type, 
   uint32_t index, LLVMValueRef instr);
 
+void tbaa_tag_box_access(compile_t *c, reach_type_t* type, LLVMValueRef instr);
+
 void tbaa_tag_scalar_access(compile_t* c, reach_type_t* type, 
   LLVMValueRef instr);
 void tbaa_tag_scalar_access_ast(compile_t *c, ast_t* type, LLVMValueRef instr);

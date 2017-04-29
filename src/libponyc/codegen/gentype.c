@@ -116,7 +116,7 @@ static tbaa_descriptor_t* alloc_tbaa_descriptor(compile_t *c, reach_type_t *t,
 
   LLVMValueRef *tbaa_args = NULL;
   uint32_t num_tbaa_args = t->field_count > 0 ? (1 + t->field_count * 2) : 2;
-  tbaa_args = (LLVMValueRef*)ponyint_pool_alloc_size(sizeof(LLVMValueRef*) 
+  tbaa_args = (LLVMValueRef*)ponyint_pool_alloc_size(sizeof(LLVMValueRef) 
     * num_tbaa_args);
 
   if (t->field_count > 0)
@@ -270,6 +270,78 @@ void tbaa_tag_struct_access_ast(compile_t *c, ast_t* base_ast,
   pony_assert(field_type != NULL);
 
   tbaa_tag_struct_access(c, base_type, field_type, field_index, instr);
+}
+
+static tbaa_descriptor_t* make_tbaa_box_descriptor(compile_t* c, 
+  reach_type_t* type)
+{
+  tbaa_descriptor_t* prim_desc = make_tbaa_descriptor(c, type);
+  pony_assert(prim_desc != NULL);
+  pony_assert(prim_desc->metadata != NULL);
+
+  tbaa_descriptor_t key;
+  key.name = genname_box(type->name);
+  size_t index = HASHMAP_UNKNOWN;
+  tbaa_descriptor_t* tbaa_desc = tbaa_descriptors_get(c->tbaa_descriptors,
+    &key, &index);
+
+  if (tbaa_desc != NULL)
+    return tbaa_desc;
+  
+  tbaa_desc = POOL_ALLOC(tbaa_descriptor_t);
+  tbaa_desc->name = key.name;
+  tbaa_desc->type = type;
+
+  LLVMValueRef *tbaa_args = (LLVMValueRef*)ponyint_pool_alloc_size(
+    sizeof(LLVMValueRef) * 3);
+  tbaa_args[0] = LLVMMDStringInContext(c->context, tbaa_desc->name,
+    (unsigned)strlen(tbaa_desc->name));
+  tbaa_args[1] = prim_desc->metadata;
+  tbaa_args[2] = LLVMConstInt(c->i32, 0, false);
+
+  tbaa_desc->metadata = LLVMMDNodeInContext(c->context, tbaa_args, 3);
+
+  tbaa_descriptors_putindex(c->tbaa_descriptors, tbaa_desc, index);
+  return tbaa_desc;
+}
+
+void tbaa_tag_box_access(compile_t *c, reach_type_t* type, LLVMValueRef instr)
+{
+  tbaa_access_tag_t key;
+  key.base_name = genname_box(type->name);
+  key.field_index = 0;
+  key.field_name = type->name;
+  size_t index = HASHMAP_UNKNOWN;
+  tbaa_access_tag_t* tag = tbaa_access_tags_get(c->tbaa_access_tags, &key,
+    &index);
+  
+  if (tag == NULL)
+  {
+    tbaa_descriptor_t* box_desc = make_tbaa_box_descriptor(c, type);
+    pony_assert(box_desc != NULL);
+    pony_assert(box_desc->metadata != NULL);
+    
+    if (type->tbaa_desc == NULL)
+      type->tbaa_desc = make_tbaa_descriptor(c, type);
+    pony_assert(type->tbaa_desc != NULL);
+    pony_assert(type->tbaa_desc->metadata != NULL);
+
+    LLVMValueRef args[3];
+    args[0] = box_desc->metadata;
+    args[1] = type->tbaa_desc->metadata;
+    args[2] = LLVMConstInt(c->i32, 0, false);
+
+    tag = POOL_ALLOC(tbaa_access_tag_t);
+    tag->base_name = key.base_name;
+    tag->field_index = key.field_index;
+    tag->field_name = key.field_name;
+    tag->metadata = LLVMMDNodeInContext(c->context, args, 3);
+
+    tbaa_access_tags_put(c->tbaa_access_tags, tag);
+  }
+
+  const char id[] = "tbaa";
+  LLVMSetMetadata(instr, LLVMGetMDKindID(id, sizeof(id) - 1), tag->metadata);
 }
 
 void tbaa_tag_scalar_access(compile_t* c, reach_type_t* type, 

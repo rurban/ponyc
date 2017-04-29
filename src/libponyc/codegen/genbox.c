@@ -25,6 +25,7 @@ LLVMValueRef gen_box(compile_t* c, ast_t* type, LLVMValueRef value)
   LLVMValueRef store = LLVMBuildStore(c->builder, value, value_ptr);
 
 #if PONY_LLVM >= 400
+  tbaa_tag_box_access(c, t, store);
 #else
   const char* box_name = genname_box(t->name);
   LLVMValueRef metadata = tbaa_metadata_for_box_type(c, box_name);
@@ -56,6 +57,7 @@ LLVMValueRef gen_unbox(compile_t* c, ast_t* type, LLVMValueRef object)
   LLVMValueRef value = LLVMBuildLoad(c->builder, value_ptr, "");
 
 #if PONY_LLVM >= 400
+  tbaa_tag_box_access(c, t, value);
 #else
   const char* box_name = genname_box(t->name);
   LLVMValueRef metadata = tbaa_metadata_for_box_type(c, box_name);
