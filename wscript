@@ -303,34 +303,34 @@ def build(ctx):
         lib       = llvmLibs + ctx.env.PONYC_EXTRA_LIBS
     )
 
-    # # testc
-    # testcUses = [ 'gtest', 'libponyc', 'libponyrt' ]
-    # testcLibs = llvmLibs + ctx.env.PONYC_EXTRA_LIBS
-    # if os_is('win32'):
-    #     testcUses = [ 'gtest', 'libponyc' ]
-    #     testcLibs = [ '/WHOLEARCHIVE:libponyrt' ] + testcLibs
+    # testc
+    testcUses = [ 'gtest', 'libponyc', 'libponyrt' ]
+    testcLibs = llvmLibs + ctx.env.PONYC_EXTRA_LIBS
+    if os_is('win32'):
+        testcUses = [ 'gtest', 'libponyc' ]
+        testcLibs = [ '/WHOLEARCHIVE:libponyrt' ] + testcLibs
 
-    # ctx(
-    #     features  = 'c cxx cxxprogram seq',
-    #     target    = 'testc',
-    #     source    = ctx.path.ant_glob('test/libponyc/**/*.cc'),
-    #     includes  = [ 'src/common', 'src/libponyc', 'src/libponyrt',
-    #                   'lib/gtest' ] + llvmIncludes,
-    #     defines   = [ 'PONY_PACKAGES_DIR="' + packagesDir.replace('\\', '\\\\') + '"'],
-    #     use       = testcUses,
-    #     lib       = testcLibs,
-    #     linkflags = [ '/INCREMENTAL:NO' ]
-    # )
+    ctx(
+        features  = 'c cxx cxxprogram seq',
+        target    = 'testc',
+        source    = ctx.path.ant_glob('test/libponyc/**/*.cc'),
+        includes  = [ 'src/common', 'src/libponyc', 'src/libponyrt',
+                      'lib/gtest' ] + llvmIncludes,
+        defines   = [ 'PONY_PACKAGES_DIR="' + packagesDir.replace('\\', '\\\\') + '"'],
+        use       = testcUses,
+        lib       = testcLibs,
+        linkflags = [ '/INCREMENTAL:NO' ]
+    )
 
-    # # testrt
-    # ctx(
-    #     features  = 'c cxx cxxprogram seq',
-    #     target    = 'testrt',
-    #     source    = ctx.path.ant_glob('test/libponyrt/**/*.cc'),
-    #     includes  = [ 'src/common', 'src/libponyrt', 'lib/gtest' ],
-    #     use       = [ 'gtest', 'libponyrt' ],
-    #     lib       = ctx.env.PONYC_EXTRA_LIBS
-    # )
+    # testrt
+    ctx(
+        features  = 'c cxx cxxprogram seq',
+        target    = 'testrt',
+        source    = ctx.path.ant_glob('test/libponyrt/**/*.cc'),
+        includes  = [ 'src/common', 'src/libponyrt', 'lib/gtest' ],
+        use       = [ 'gtest', 'libponyrt' ],
+        lib       = ctx.env.PONYC_EXTRA_LIBS
+    )
 
 
 # this command runs the test suites

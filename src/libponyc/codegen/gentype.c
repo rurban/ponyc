@@ -96,7 +96,7 @@ typedef struct tbaa_field_update_t
 // to handle mutually-recursive types, we set null operands for the 
 // metadatas at first and then fill them in after
 static tbaa_descriptor_t* alloc_tbaa_descriptor(compile_t *c, reach_type_t *t, 
-  tbaa_field_update_t** updates)
+  LLVMValueRef parent, tbaa_field_update_t** updates)
 {
   tbaa_descriptor_t key; key.name = t->name;
   size_t index = HASHMAP_UNKNOWN;
@@ -150,22 +150,24 @@ static tbaa_descriptor_t* alloc_tbaa_descriptor(compile_t *c, reach_type_t *t,
       fu->next = *updates;
       *updates = fu;
 
-      alloc_tbaa_descriptor(c, t->fields[i].type, updates);
+      alloc_tbaa_descriptor(c, t->fields[i].type, parent, updates);
     }
-
-    fprintf(stderr, "gendesc_init: gen tbaa struct type %s with %d fields\n", 
-      tbaa_desc->name, t->field_count);
   }
   else
   {
     tbaa_args[0] = LLVMMDStringInContext(c->context, tbaa_desc->name, 
       (unsigned)strlen(tbaa_desc->name));
-    tbaa_args[1] = c->tbaa_root; // TODO: find supertype?
+    tbaa_args[1] = parent;
     tbaa_desc->metadata = LLVMMDNodeInContext(c->context, tbaa_args, 
       num_tbaa_args);
+  }
 
-    fprintf(stderr, "gendesc_init: gen tbaa scalar type %s (%s)\n", 
-      tbaa_desc->name, t->mangle);
+  // subtypes
+  index = HASHMAP_BEGIN;
+  reach_type_t* subtype;
+  while ((subtype = reach_type_cache_next(&t->subtypes, &index)) != NULL)
+  {
+    alloc_tbaa_descriptor(c, subtype, tbaa_desc->metadata, updates);
   }
 
   return tbaa_desc;
@@ -177,7 +179,8 @@ extern void LLVMMDNodeReplaceOperand(LLVMValueRef parent, unsigned i,
 tbaa_descriptor_t* make_tbaa_descriptor(compile_t* c, reach_type_t* t)
 {
   tbaa_field_update_t* update = NULL;
-  tbaa_descriptor_t *tbaa_desc = alloc_tbaa_descriptor(c, t, &update);
+  tbaa_descriptor_t *tbaa_desc = alloc_tbaa_descriptor(c, t, c->tbaa_root,
+    &update);
 
   tbaa_field_update_t *prev;
   while (update != NULL)
@@ -234,6 +237,7 @@ void tbaa_tag_struct_access(compile_t* c, reach_type_t* base_type,
 
     tag = POOL_ALLOC(tbaa_access_tag_t);
     tag->base_name = key.base_name;
+    tag->field_index = field_index;
     tag->field_name = key.field_name;
     tag->metadata = LLVMMDNodeInContext(c->context, args, 3);
 
@@ -251,7 +255,7 @@ void get_fieldinfo(ast_t* l_type, ast_t* right, ast_t** l_def,
   ast_t *f = ast_get(d, ast_name(right), NULL);
   uint32_t i = (uint32_t)ast_index(f);
 
-  *def = d;
+  *l_def = d;
   *field = f;
   *index = i;
 }
@@ -259,16 +263,57 @@ void get_fieldinfo(ast_t* l_type, ast_t* right, ast_t** l_def,
 void tbaa_tag_struct_access_ast(compile_t *c, ast_t* base_ast, 
   uint32_t field_index, LLVMValueRef instr)
 {
-  reach_type_t key; key.name = genname_type(base_ast);
-  size_t index = HASHMAP_UNKNOWN;
-  reach_type_t *base_type = reach_types_get(&c->reach->types, &key, &index);  
+  reach_type_t* base_type = reach_type(c->reach, base_ast);
   pony_assert(base_type != NULL);
-  pony_assert(field_index < base_type->field_count);
-  
+  pony_assert(field_index < base_type->field_count);  
   reach_type_t *field_type = base_type->fields[field_index].type;
   pony_assert(field_type != NULL);
 
   tbaa_tag_struct_access(c, base_type, field_type, field_index, instr);
+}
+
+void tbaa_tag_scalar_access(compile_t* c, reach_type_t* type, 
+  LLVMValueRef instr)
+{
+  tbaa_access_tag_t key;
+  key.base_name = type->name;
+  key.field_index = 0;
+  key.field_name = type->name;
+  size_t index = HASHMAP_UNKNOWN;
+  tbaa_access_tag_t* tag = tbaa_access_tags_get(c->tbaa_access_tags, &key,
+    &index);
+  
+  if (tag == NULL)
+  {
+    if (type->tbaa_desc == NULL)
+      type->tbaa_desc = make_tbaa_descriptor(c, type);
+    pony_assert(type->tbaa_desc != NULL);
+    pony_assert(type->tbaa_desc->metadata != NULL);
+
+    LLVMValueRef args[3];
+    args[0] = type->tbaa_desc->metadata;
+    args[1] = type->tbaa_desc->metadata;
+    args[2] = LLVMConstInt(c->i32, 0, false);
+
+    tag = POOL_ALLOC(tbaa_access_tag_t);
+    tag->base_name = key.base_name;
+    tag->field_index = 0;
+    tag->field_name = key.field_name;
+    tag->metadata = LLVMMDNodeInContext(c->context, args, 3);
+
+    tbaa_access_tags_put(c->tbaa_access_tags, tag);
+  }
+
+  const char id[] = "tbaa";
+  LLVMSetMetadata(instr, LLVMGetMDKindID(id, sizeof(id)-1), tag->metadata);
+}
+
+void tbaa_tag_scalar_access_ast(compile_t* c, ast_t* type_ast,
+  LLVMValueRef instr)
+{
+  reach_type_t* type = reach_type(c->reach, type_ast);
+  pony_assert(type != NULL);
+  tbaa_tag_scalar_access(c, type, instr);
 }
 
 #else

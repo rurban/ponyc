@@ -344,7 +344,8 @@ static LLVMValueRef assign_local(compile_t* c, LLVMValueRef l_value,
 }
 
 static LLVMValueRef assign_field(compile_t* c, LLVMValueRef l_value,
-  LLVMValueRef r_value, ast_t* p_type, ast_t* r_type)
+  LLVMValueRef r_value, ast_t* s_type, uint32_t index, ast_t* p_type, 
+  ast_t* r_type)
 {
   LLVMValueRef result = LLVMBuildLoad(c->builder, l_value, "");
 
@@ -359,6 +360,10 @@ static LLVMValueRef assign_field(compile_t* c, LLVMValueRef l_value,
   LLVMValueRef store = LLVMBuildStore(c->builder, cast_value, l_value);
 
 #if PONY_LLVM >= 400
+  if (s_type != NULL)
+    tbaa_tag_struct_access_ast(c, s_type, index, store);
+  else
+    tbaa_tag_scalar_access_ast(c, p_type, store);
 #else
   LLVMValueRef metadata = tbaa_metadata_for_type(c, p_type);
   const char id[] = "tbaa";
@@ -456,15 +461,17 @@ static LLVMValueRef assign_rvalue(compile_t* c, ast_t* left, ast_t* r_type,
       // The result is the previous value of the field.
       LLVMValueRef l_value = gen_fieldptr(c, left);
       ast_t* p_type = ast_type(ast_child(left));
-      return assign_field(c, l_value, r_value, p_type, r_type);
+      return assign_field(c, l_value, r_value, NULL, -1, p_type, r_type);
     }
 
     case TK_TUPLEELEMREF:
     {
       // The result is the previous value of the tuple element.
-      LLVMValueRef l_value = gen_tupleelemptr(c, left);
+      ast_t* s_type;
+      uint32_t index;
+      LLVMValueRef l_value = gen_tupleelemptr(c, left, &s_type, &index);
       ast_t* p_type = ast_type(ast_child(left));
-      return assign_field(c, l_value, r_value, p_type, r_type);
+      return assign_field(c, l_value, r_value, s_type, index, p_type, r_type);
     }
 
     case TK_EMBEDREF:
