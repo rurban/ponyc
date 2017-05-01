@@ -219,6 +219,7 @@ LLVMMetadataRef LLVMDIBuilderCreateBasicType(LLVMDIBuilderRef d,
   DIBuilder* pd = unwrap(d);
 
 #if PONY_LLVM >= 400
+  (void)align_bits;
   return wrap(pd->createBasicType(name, size_bits, encoding));
 #else
   return wrap(pd->createBasicType(name, size_bits, align_bits, encoding));

@@ -25,7 +25,7 @@ typedef struct tbaa_access_tag_t
 {
   const char* base_name;
   uint32_t field_index;
-  const char* field_name;  
+  const char* field_name;
   LLVMValueRef metadata;
 } tbaa_access_tag_t;
 
@@ -44,9 +44,6 @@ void tbaa_tag_box_access(compile_t *c, reach_type_t* type, LLVMValueRef instr);
 void tbaa_tag_scalar_access(compile_t* c, reach_type_t* type, 
   LLVMValueRef instr);
 void tbaa_tag_scalar_access_ast(compile_t *c, ast_t* type, LLVMValueRef instr);
-
-void get_fieldinfo(ast_t* l_type, ast_t* right, ast_t** l_def,
-  ast_t** field, uint32_t* index);
 
 #else
 
@@ -67,6 +64,9 @@ LLVMValueRef tbaa_metadata_for_type(compile_t* c, ast_t* type);
 LLVMValueRef tbaa_metadata_for_box_type(compile_t* c, const char* box_name);
 
 #endif
+
+void get_fieldinfo(ast_t* l_type, ast_t* right, ast_t** l_def,
+  ast_t** field, uint32_t* index);
 
 bool gentypes(compile_t* c);
 

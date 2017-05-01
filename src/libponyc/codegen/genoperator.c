@@ -367,6 +367,7 @@ static LLVMValueRef assign_field(compile_t* c, LLVMValueRef l_value,
 #else
   LLVMValueRef metadata = tbaa_metadata_for_type(c, p_type);
   const char id[] = "tbaa";
+  (void)s_type; (void)index; //unused
   LLVMSetMetadata(result, LLVMGetMDKindID(id, sizeof(id) - 1), metadata);
   LLVMSetMetadata(store, LLVMGetMDKindID(id, sizeof(id) - 1), metadata);
 #endif

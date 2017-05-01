@@ -39,7 +39,6 @@ static LLVMValueRef make_unbox_function(compile_t* c, reach_type_t* t,
   LLVMGetParamTypes(f_type, params);
   LLVMTypeRef ret_type = LLVMGetReturnType(f_type);
 
-  const char* box_name = genname_box(t->name);
   const char* unbox_name = genname_unbox(m->full_name);
 
   if(ast_id(m->r_fun) != TK_NEW)
@@ -67,6 +66,7 @@ static LLVMValueRef make_unbox_function(compile_t* c, reach_type_t* t,
 #if PONY_LLVM >= 400
   tbaa_tag_box_access(c, t, primitive);
 #else
+  const char* box_name = genname_box(t->name);
   LLVMValueRef metadata = tbaa_metadata_for_box_type(c, box_name);
   const char id[] = "tbaa";
   LLVMSetMetadata(primitive, LLVMGetMDKindID(id, sizeof(id) - 1), metadata);

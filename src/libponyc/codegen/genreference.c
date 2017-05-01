@@ -104,7 +104,6 @@ LLVMValueRef gen_fieldload(compile_t* c, ast_t* ast)
   ast_t* f;
   ast_t* d;
   uint32_t i;
-  const char* rname = ast_name(right);
   get_fieldinfo(l_type, right, &d, &f, &i);
   tbaa_tag_struct_access_ast(c, l_type, i, field);
 #else
@@ -118,12 +117,7 @@ LLVMValueRef gen_fieldload(compile_t* c, ast_t* ast)
 
 LLVMValueRef gen_fieldembed(compile_t* c, ast_t* ast)
 {
-  LLVMValueRef field = gen_fieldptr(c, ast);
-
-  if(field == NULL)
-    return NULL;
-
-  return field;
+  return gen_fieldptr(c, ast);
 }
 
 static LLVMValueRef make_tupleelemptr(compile_t* c, LLVMValueRef l_value,

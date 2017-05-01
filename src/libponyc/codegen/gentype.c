@@ -126,13 +126,29 @@ static tbaa_descriptor_t* alloc_tbaa_descriptor(compile_t *c, reach_type_t *t,
 
     tbaa_args[0] = LLVMMDStringInContext(c->context, tbaa_desc->name, 
       (unsigned)strlen(tbaa_desc->name));
+
+    uint32_t pad = 0;
+
+    switch(t->underlying)
+    {
+      case TK_CLASS:
+      case TK_PRIMITIVE:
+        pad = 1;
+        break;
+
+      case TK_ACTOR:
+        pad = 2;
+        break;
+
+      default: {}
+    }
     
     for (uint32_t i = 0; i < t->field_count; i++)
     {
       tbaa_args[1 + i*2] = NULL;
       LLVMValueRef offset = LLVMConstInt(c->i32, LLVMOffsetOfElement(
         c->target_data, t->underlying == TK_TUPLETYPE ? t->primitive : 
-          t->structure, i), false);
+          t->structure, i + pad), false);
       tbaa_desc->field_offsets[i] = offset;
       tbaa_args[2 + i*2] = offset;
     }
@@ -164,9 +180,6 @@ static tbaa_descriptor_t* alloc_tbaa_descriptor(compile_t *c, reach_type_t *t,
 
   return tbaa_desc;
 }
-
-extern void LLVMMDNodeReplaceOperand(LLVMValueRef parent, unsigned i, 
-  LLVMValueRef node);
 
 tbaa_descriptor_t* make_tbaa_descriptor(compile_t* c, reach_type_t* t)
 {
@@ -238,18 +251,6 @@ void tbaa_tag_struct_access(compile_t* c, reach_type_t* base_type,
 
   const char id[] = "tbaa";
   LLVMSetMetadata(instr, LLVMGetMDKindID(id, sizeof(id) - 1), tag->metadata);
-}
-
-void get_fieldinfo(ast_t* l_type, ast_t* right, ast_t** l_def,
-  ast_t** field, uint32_t* index)
-{
-  ast_t* d = (ast_t*)ast_data(l_type);
-  ast_t *f = ast_get(d, ast_name(right), NULL);
-  uint32_t i = (uint32_t)ast_index(f);
-
-  *l_def = d;
-  *field = f;
-  *index = i;
 }
 
 void tbaa_tag_struct_access_ast(compile_t *c, ast_t* base_ast, 
@@ -486,27 +487,19 @@ static LLVMValueRef make_tbaa_root(LLVMContextRef ctx)
   return LLVMMDNodeInContext(ctx, &mdstr, 1);
 }
 
-static LLVMValueRef make_tbaa_descriptor(LLVMContextRef ctx, 
-  LLVMValueRef root)
-{
-  const char str[] = "Type descriptor";
-  LLVMValueRef params[3];
-  params[0] = LLVMMDStringInContext(ctx, str, sizeof(str) - 1);
-  params[1] = root;
-  params[2] = LLVMConstInt(LLVMInt64TypeInContext(ctx), 1, false);
-  return LLVMMDNodeInContext(ctx, params, 3);
-}
-
-static LLVMValueRef make_tbaa_descptr(LLVMContextRef ctx, LLVMValueRef root)
-{
-  const char str[] = "Descriptor pointer";
-  LLVMValueRef params[2];
-  params[0] = LLVMMDStringInContext(ctx, str, sizeof(str) - 1);
-  params[1] = root;
-  return LLVMMDNodeInContext(ctx, params, 2);
-}
-
 #endif
+
+void get_fieldinfo(ast_t* l_type, ast_t* right, ast_t** l_def,
+  ast_t** field, uint32_t* index)
+{
+  ast_t* d = (ast_t*)ast_data(l_type);
+  ast_t *f = ast_get(d, ast_name(right), NULL);
+  uint32_t i = (uint32_t)ast_index(f);
+
+  *l_def = d;
+  *field = f;
+  *index = i;
+}
 
 static bool make_opaque_struct(compile_t* c, reach_type_t* t)
 {
