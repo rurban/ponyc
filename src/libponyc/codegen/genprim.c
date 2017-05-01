@@ -209,7 +209,11 @@ static void pointer_apply(compile_t* c, void* data, token_id cap)
   ast_setid(tcap, cap);
 
 #if PONY_LLVM >= 400
-  tbaa_tag_scalar_access_ast(c, t->ast, result);
+  if (t_elem->field_count == 0)
+  {
+    tbaa_tag_scalar_access(c, t_elem, result);
+  }
+  // TODO: not sure how to use the dynamic value of `index` in metadata
 #else
   LLVMValueRef metadata = tbaa_metadata_for_type(c, t->ast);
   const char id[] = "tbaa";
@@ -244,9 +248,12 @@ static void pointer_update(compile_t* c, reach_type_t* t, reach_type_t* t_elem)
   LLVMValueRef store = LLVMBuildStore(c->builder, value, loc);
 
 #if PONY_LLVM >= 400
-  uint32_t idx = (uint32_t)LLVMConstIntGetZExtValue(index);
-  tbaa_tag_struct_access(c, t, t_elem, idx, result);
-  tbaa_tag_struct_access(c, t, t_elem, idx, store);
+  if (t_elem->field_count == 0)
+  {
+    tbaa_tag_scalar_access(c, t_elem, result);
+    tbaa_tag_scalar_access(c, t_elem, store);
+  }
+  // TODO: not sure how to use the dynamic value of `index` in metadata
 #else
   LLVMValueRef metadata = tbaa_metadata_for_type(c, t->ast);
   const char id[] = "tbaa";
@@ -351,8 +358,11 @@ static void pointer_delete(compile_t* c, reach_type_t* t, reach_type_t* t_elem)
   LLVMValueRef result = LLVMBuildLoad(c->builder, elem_ptr, "");
 
 #if PONY_LLVM >= 400
-  uint32_t idx = (uint32_t)LLVMConstIntGetZExtValue(n);
-  tbaa_tag_struct_access(c, t, t_elem, idx, result);
+  if (t_elem->field_count == 0)
+  {
+    tbaa_tag_scalar_access(c, t_elem, result);
+  }
+  // TODO: not sure how to use the dynamic value of `n` for metadata
 #else
   LLVMValueRef metadata = tbaa_metadata_for_type(c, t->ast);
   const char id[] = "tbaa";
